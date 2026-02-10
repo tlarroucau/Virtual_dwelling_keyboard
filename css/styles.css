@@ -104,6 +104,19 @@
     --key-font-size: 1.5rem;
     --key-gap: 8px;
 }
+[data-key-size="xlarge"] {
+    --key-size: 100px;
+    --key-font-size: 1.8rem;
+    --key-gap: 10px;
+}
+
+/* Font boost — overrides key font size */
+[data-font-boost="large"] .key {
+    font-size: 1.6rem !important;
+}
+[data-font-boost="xlarge"] .key {
+    font-size: 2.2rem !important;
+}
 
 /* --- Reset & Base --- */
 *, *::before, *::after {
@@ -130,7 +143,7 @@ body {
 
 /* --- App Container --- */
 .app-container {
-    max-width: 1200px;
+    max-width: 100%;
     margin: 0 auto;
     padding: 16px 20px;
     display: flex;
