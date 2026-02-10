@@ -27,6 +27,8 @@
     const cooldownSlider = document.getElementById('cooldown-slider');
     const cooldownValue = document.getElementById('cooldown-value');
     const keySizeSelect = document.getElementById('key-size-select');
+    const fontBoostSelect = document.getElementById('font-boost-select');
+    const emojiSizeSelect = document.getElementById('emoji-size-select');
     const themeSelect = document.getElementById('theme-select');
     const soundToggle = document.getElementById('sound-toggle');
     const predictionToggle = document.getElementById('prediction-toggle');
@@ -65,9 +67,11 @@
         // Initial predictions
         updatePredictions();
 
-        // Apply initial theme & size
+        // Apply initial theme, size, font boost & emoji size
         applyTheme(themeSelect.value);
         applyKeySize(keySizeSelect.value);
+        applyFontBoost(fontBoostSelect.value);
+        applyEmojiSize(emojiSizeSelect.value);
     }
 
     // --- Key activation handler ---
@@ -266,6 +270,18 @@
             saveSettings();
         });
 
+        // Font boost
+        fontBoostSelect.addEventListener('change', () => {
+            applyFontBoost(fontBoostSelect.value);
+            saveSettings();
+        });
+
+        // Emoji size
+        emojiSizeSelect.addEventListener('change', () => {
+            applyEmojiSize(emojiSizeSelect.value);
+            saveSettings();
+        });
+
         // Theme
         themeSelect.addEventListener('change', () => {
             applyTheme(themeSelect.value);
@@ -302,6 +318,14 @@
 
     function applyKeySize(size) {
         document.body.setAttribute('data-key-size', size);
+    }
+
+    function applyFontBoost(boost) {
+        document.body.setAttribute('data-font-boost', boost);
+    }
+
+    function applyEmojiSize(size) {
+        document.body.setAttribute('data-emoji-size', size);
     }
 
     // --- Action Buttons ---
@@ -403,6 +427,8 @@
             dwellTime: dwellTimeSlider.value,
             cooldownTime: cooldownSlider.value,
             keySize: keySizeSelect.value,
+            fontBoost: fontBoostSelect.value,
+            emojiSize: emojiSizeSelect.value,
             theme: themeSelect.value,
             soundEnabled: soundToggle.checked,
             predictionEnabled: predictionToggle.checked,
@@ -427,6 +453,8 @@
                 cooldownValue.textContent = s.cooldownTime + ' ms';
             }
             if (s.keySize) keySizeSelect.value = s.keySize;
+            if (s.fontBoost) fontBoostSelect.value = s.fontBoost;
+            if (s.emojiSize) emojiSizeSelect.value = s.emojiSize;
             if (s.theme) themeSelect.value = s.theme;
             if (s.soundEnabled != null) soundToggle.checked = s.soundEnabled;
             if (s.predictionEnabled != null) predictionToggle.checked = s.predictionEnabled;
