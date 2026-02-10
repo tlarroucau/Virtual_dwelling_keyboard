@@ -60,6 +60,7 @@
         // Wire up UI events
         setupSettingsEvents();
         setupActionButtons();
+        setupQuickNeeds();
 
         // Initial predictions
         updatePredictions();
@@ -341,15 +342,37 @@
      * Add dwell-fill bar and dwell behavior to an action button.
      */
     function attachDwellToActionBtn(btn, action) {
-        // Add dwell fill bar
-        const fill = document.createElement('div');
-        fill.className = 'dwell-fill';
-        btn.style.position = 'relative';
-        btn.style.overflow = 'hidden';
-        btn.appendChild(fill);
+        // Add dwell fill bar if not already present
+        if (!btn.querySelector('.dwell-fill')) {
+            const fill = document.createElement('div');
+            fill.className = 'dwell-fill';
+            btn.style.position = 'relative';
+            btn.style.overflow = 'hidden';
+            btn.appendChild(fill);
+        }
 
         // Use DwellEngine's prediction-style dwell
         DwellEngine.attachToPrediction(btn, action);
+    }
+
+    // --- Quick Needs ---
+    function setupQuickNeeds() {
+        const needBtns = document.querySelectorAll('.need-btn');
+        needBtns.forEach((btn) => {
+            const phrase = btn.getAttribute('data-phrase');
+            const action = () => {
+                // Type the full phrase + space
+                typedText += phrase + ' ';
+                currentWord = '';
+                updateDisplay();
+                updatePredictions();
+
+                // Flash
+                btn.classList.add('activated');
+                setTimeout(() => btn.classList.remove('activated'), 200);
+            };
+            attachDwellToActionBtn(btn, action);
+        });
     }
 
     // --- Toast notification ---

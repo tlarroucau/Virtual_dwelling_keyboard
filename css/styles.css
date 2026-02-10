@@ -144,20 +144,87 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 20px;
+    padding: 10px 16px;
     background: var(--bg-secondary);
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
     box-shadow: var(--shadow-sm);
+    gap: 10px;
 }
 
-.app-title {
-    font-size: 1.3rem;
-    font-weight: 700;
-    background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+/* --- Quick Needs --- */
+.quick-needs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex: 1;
+    padding: 2px 0;
+}
+
+.quick-needs::-webkit-scrollbar {
+    display: none;
+}
+
+.need-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 6px 10px;
+    min-width: 64px;
+    background: var(--surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-family: var(--font-family);
+    font-size: 1.4rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.need-btn .need-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    line-height: 1;
+}
+
+.need-btn:hover {
+    background: var(--surface-hover);
+    border-color: var(--accent);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-2px);
+}
+
+.need-btn.dwelling {
+    border-color: var(--accent);
+    box-shadow: 0 4px 16px var(--accent-glow);
+}
+
+.need-btn .dwell-fill {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 3px;
+    background: var(--accent);
+    transition: width linear;
+    width: 0%;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+.need-btn.dwelling .dwell-fill {
+    width: 100%;
+}
+
+.need-btn.activated {
+    background: var(--accent) !important;
+    transform: scale(0.95);
+    transition: all 0.1s ease;
 }
 
 .top-bar-actions {
