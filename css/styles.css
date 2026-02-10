@@ -155,34 +155,24 @@ body {
 /* --- Top Bar --- */
 .top-bar {
     display: flex;
-    flex-direction: column;
-    padding: 10px 16px;
-    background: var(--bg-secondary);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow-sm);
-    gap: 8px;
-}
-
-.top-bar-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 10px;
 }
 
 /* --- Quick Needs --- */
 .quick-needs {
     display: flex;
+    flex-wrap: wrap;
     gap: 6px;
-    overflow-x: auto;
-    scrollbar-width: none;
     flex: 1;
-    padding: 2px 0;
-}
-
-.quick-needs::-webkit-scrollbar {
-    display: none;
+    padding: 10px 16px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    align-content: center;
+    justify-content: center;
 }
 
 .need-btn {
@@ -282,9 +272,15 @@ body {
 
 .top-bar-actions {
     display: flex;
+    flex-direction: column;
     gap: 8px;
     flex-shrink: 0;
-    justify-content: flex-end;
+    padding: 10px 12px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    justify-content: center;
 }
 
 .action-btn {
@@ -301,6 +297,9 @@ body {
     font-weight: 500;
     cursor: pointer;
     transition: all var(--transition-fast);
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
 }
 
 .action-btn:hover {
@@ -866,8 +865,10 @@ select:focus {
     }
     .top-bar {
         flex-direction: column;
-        gap: 10px;
-        padding: 12px 16px;
+    }
+    .top-bar-actions {
+        flex-direction: row;
+        justify-content: center;
     }
     .settings-panel {
         width: 100%;
