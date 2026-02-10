@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teclado Virtual — Accesible</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Settings Panel (slide-in) -->
+    <aside id="settings-panel" class="settings-panel" aria-label="Panel de configuración">
+        <div class="settings-header">
+            <h2>Configuración</h2>
+            <button id="close-settings" class="icon-btn" aria-label="Cerrar configuración">✕</button>
+        </div>
+        <div class="settings-body">
+            <div class="setting-group">
+                <label for="dwell-time-slider">Tiempo de reposo (dwell)</label>
+                <div class="slider-row">
+                    <input type="range" id="dwell-time-slider" min="300" max="3000" step="100" value="800">
+                    <span id="dwell-time-value" class="slider-value">800 ms</span>
+                </div>
+            </div>
+            <div class="setting-group">
+                <label for="cooldown-slider">Pausa después de activación</label>
+                <div class="slider-row">
+                    <input type="range" id="cooldown-slider" min="100" max="1500" step="50" value="300">
+                    <span id="cooldown-value" class="slider-value">300 ms</span>
+                </div>
+            </div>
+            <div class="setting-group">
+                <label for="key-size-select">Tamaño de teclas</label>
+                <select id="key-size-select">
+                    <option value="small">Pequeño</option>
+                    <option value="medium" selected>Mediano</option>
+                    <option value="large">Grande</option>
+                </select>
+            </div>
+            <div class="setting-group">
+                <label for="theme-select">Tema</label>
+                <select id="theme-select">
+                    <option value="dark" selected>Oscuro</option>
+                    <option value="light">Claro</option>
+                    <option value="high-contrast">Alto contraste</option>
+                </select>
+            </div>
+            <div class="setting-group">
+                <label class="toggle-label">
+                    <input type="checkbox" id="sound-toggle" checked>
+                    <span>Sonido al escribir</span>
+                </label>
+            </div>
+            <div class="setting-group">
+                <label class="toggle-label">
+                    <input type="checkbox" id="prediction-toggle" checked>
+                    <span>Predicción de palabras</span>
+                </label>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Overlay for settings -->
+    <div id="settings-overlay" class="settings-overlay"></div>
+
+    <main class="app-container">
+        <!-- Top bar -->
+        <header class="top-bar">
+            <h1 class="app-title">Teclado Accesible</h1>
+            <div class="top-bar-actions">
+                <button id="clear-btn" class="action-btn" aria-label="Borrar todo el texto">
+                    <span class="btn-icon">🗑️</span> Borrar todo
+                </button>
+                <button id="copy-btn" class="action-btn" aria-label="Copiar texto">
+                    <span class="btn-icon">📋</span> Copiar
+                </button>
+                <button id="settings-btn" class="action-btn" aria-label="Abrir configuración">
+                    <span class="btn-icon">⚙️</span> Ajustes
+                </button>
+            </div>
+        </header>
+
+        <!-- Text display area -->
+        <section class="text-display-section" aria-label="Texto escrito">
+            <div id="text-output" class="text-output" role="textbox" aria-multiline="true" aria-label="Texto escrito">
+                <span id="text-content"></span><span id="cursor-blink" class="cursor-blink">|</span>
+            </div>
+        </section>
+
+        <!-- Word predictions -->
+        <section id="predictions-bar" class="predictions-bar" aria-label="Sugerencias de palabras">
+            <div class="predictions-container" id="predictions-container">
+                <!-- Prediction buttons injected by JS -->
+            </div>
+        </section>
+
+        <!-- Keyboard -->
+        <section class="keyboard-section" aria-label="Teclado virtual">
+            <div id="keyboard" class="keyboard">
+                <!-- Keys rendered by JS -->
+            </div>
+        </section>
+
+        <!-- Dwell indicator (global, follows cursor when needed) -->
+        <div id="dwell-indicator" class="dwell-indicator" aria-hidden="true">
+            <svg viewBox="0 0 36 36" class="dwell-ring">
+                <circle class="dwell-ring-bg" cx="18" cy="18" r="16"></circle>
+                <circle id="dwell-ring-progress" class="dwell-ring-progress" cx="18" cy="18" r="16"></circle>
+            </svg>
+        </div>
+    </main>
+
+    <!-- Audio elements for feedback -->
+    <audio id="audio-key" preload="auto">
+        <source src="data:audio/wav;base64,UklGRl9vT19teleVBFbXQAAAABAAEARKwAAIhYAQACABAAZGF0YQ==" type="audio/wav">
+    </audio>
+
+    <script src="js/predictor.js"></script>
+    <script src="js/keyboard.js"></script>
+    <script src="js/dwell.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
