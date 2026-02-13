@@ -15,6 +15,7 @@
 
     // Buttons
     const clearBtn = document.getElementById('clear-btn');
+    const deleteWordBtn = document.getElementById('delete-word-btn');
     const speakBtn = document.getElementById('speak-btn');
     const copyBtn = document.getElementById('copy-btn');
     const settingsBtn = document.getElementById('settings-btn');
@@ -345,6 +346,17 @@
             updatePredictions();
         };
 
+        const deleteWordAction = () => {
+            if (typedText.length === 0) return;
+            // Remove trailing spaces, then remove characters until next space or start
+            typedText = typedText.trimEnd();
+            const lastSpace = typedText.lastIndexOf(' ');
+            typedText = lastSpace === -1 ? '' : typedText.slice(0, lastSpace + 1);
+            currentWord = '';
+            updateDisplay();
+            updatePredictions();
+        };
+
         const copyAction = () => {
             if (typedText.length === 0) return;
             navigator.clipboard.writeText(typedText).then(() => {
@@ -370,6 +382,7 @@
 
         // Attach dwell + click to each action button
         attachDwellToActionBtn(clearBtn, clearAction);
+        attachDwellToActionBtn(deleteWordBtn, deleteWordAction);
         attachDwellToActionBtn(speakBtn, speakAction);
         attachDwellToActionBtn(copyBtn, copyAction);
         attachDwellToActionBtn(settingsBtn, settingsAction);

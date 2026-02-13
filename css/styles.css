@@ -403,6 +403,60 @@ body {
     width: 100%;
 }
 
+.delete-word-btn-large {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 24px;
+    min-width: 100px;
+    background: var(--surface);
+    color: var(--text-primary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    font-family: var(--font-family);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-sm);
+}
+
+.delete-word-btn-large .btn-icon {
+    font-size: 2rem;
+}
+
+.delete-word-btn-large:hover {
+    background: var(--surface-hover);
+    border-color: #e67e22;
+    box-shadow: 0 4px 16px rgba(230, 126, 34, 0.3);
+    transform: translateY(-1px);
+}
+
+.delete-word-btn-large.dwelling {
+    border-color: #e67e22;
+    box-shadow: 0 4px 16px rgba(230, 126, 34, 0.4);
+}
+
+.delete-word-btn-large .dwell-fill {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 4px;
+    background: #e67e22;
+    transition: width linear;
+    width: 0%;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.delete-word-btn-large.dwelling .dwell-fill {
+    width: 100%;
+}
+
 .speak-btn-large {
     display: flex;
     flex-direction: column;
