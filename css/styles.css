@@ -150,6 +150,11 @@ body {
     flex-direction: column;
     min-height: 100vh;
     gap: 12px;
+    box-sizing: border-box;
+}
+
+*, *::before, *::after {
+    box-sizing: inherit;
 }
 
 /* --- Top Bar --- */
@@ -642,7 +647,7 @@ body {
     border: 1px solid var(--border);
     box-shadow: var(--shadow-lg);
     width: 100%;
-    max-width: 1100px;
+    box-sizing: border-box;
 }
 
 .keyboard-row {
@@ -657,7 +662,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: var(--key-size);
+    flex: 1 1 0;
+    min-width: 0;
     height: var(--key-size);
     background: var(--surface);
     color: var(--text-primary);
@@ -670,7 +676,6 @@ body {
     transition: all var(--transition-fast);
     box-shadow: var(--shadow-key);
     overflow: hidden;
-    flex-shrink: 0;
 }
 
 .key .key-label {
@@ -747,27 +752,27 @@ body {
 
 /* --- Special keys --- */
 .key-space {
-    width: calc(var(--key-size) * 6 + var(--key-gap) * 5);
+    flex: 6;
 }
 
 .key-backspace,
 .key-enter {
-    width: calc(var(--key-size) * 1.8 + var(--key-gap) * 0.8);
+    flex: 1.8;
     font-size: calc(var(--key-font-size) * 0.8);
 }
 
 .key-shift {
-    width: calc(var(--key-size) * 2.2 + var(--key-gap) * 1.2);
+    flex: 2.2;
     font-size: calc(var(--key-font-size) * 0.8);
 }
 
 .key-tab {
-    width: calc(var(--key-size) * 1.5 + var(--key-gap) * 0.5);
+    flex: 1.5;
     font-size: calc(var(--key-font-size) * 0.8);
 }
 
 .key-caps {
-    width: calc(var(--key-size) * 1.7 + var(--key-gap) * 0.7);
+    flex: 1.7;
     font-size: calc(var(--key-font-size) * 0.75);
 }
 
