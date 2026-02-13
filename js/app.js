@@ -15,6 +15,7 @@
 
     // Buttons
     const clearBtn = document.getElementById('clear-btn');
+    const speakBtn = document.getElementById('speak-btn');
     const copyBtn = document.getElementById('copy-btn');
     const settingsBtn = document.getElementById('settings-btn');
     const closeSettingsBtn = document.getElementById('close-settings');
@@ -32,6 +33,10 @@
     const themeSelect = document.getElementById('theme-select');
     const soundToggle = document.getElementById('sound-toggle');
     const predictionToggle = document.getElementById('prediction-toggle');
+    const elevenlabsKeyInput = document.getElementById('elevenlabs-key');
+    const elevenlabsVoiceInput = document.getElementById('elevenlabs-voice');
+    const speechRateSlider = document.getElementById('speech-rate-slider');
+    const speechRateValue = document.getElementById('speech-rate-value');
 
     // --- State ---
     let typedText = '';
@@ -72,6 +77,9 @@
         applyKeySize(keySizeSelect.value);
         applyFontBoost(fontBoostSelect.value);
         applyEmojiSize(emojiSizeSelect.value);
+
+        // Load available voices for speech
+        loadVoices();
     }
 
     // --- Key activation handler ---
@@ -356,8 +364,13 @@
             openSettings();
         };
 
+        const speakAction = () => {
+            speakText();
+        };
+
         // Attach dwell + click to each action button
         attachDwellToActionBtn(clearBtn, clearAction);
+        attachDwellToActionBtn(speakBtn, speakAction);
         attachDwellToActionBtn(copyBtn, copyAction);
         attachDwellToActionBtn(settingsBtn, settingsAction);
     }
@@ -399,6 +412,94 @@
         });
     }
 
+    // --- Speech Synthesis (ElevenLabs API) ---
+    let currentAudio = null;
+
+    function loadVoices() {
+        // Speech rate slider
+        speechRateSlider.addEventListener('input', () => {
+            speechRateValue.textContent = speechRateSlider.value + 'x';
+            saveSettings();
+        });
+
+        elevenlabsKeyInput.addEventListener('change', () => saveSettings());
+        elevenlabsVoiceInput.addEventListener('change', () => saveSettings());
+    }
+
+    async function speakText() {
+        if (!typedText.trim()) {
+            showToast('No hay texto para hablar');
+            return;
+        }
+
+        // If currently playing, stop
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio = null;
+            speakBtn.classList.remove('speaking');
+            return;
+        }
+
+        const apiKey = elevenlabsKeyInput.value.trim();
+        const voiceId = elevenlabsVoiceInput.value.trim() || 'EXAVITQu4vr4xnSDxMaL';
+
+        if (!apiKey) {
+            showToast('Configure su API Key de ElevenLabs en Ajustes');
+            return;
+        }
+
+        speakBtn.classList.add('speaking');
+        showToast('Generando voz...');
+
+        try {
+            const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'audio/mpeg',
+                    'Content-Type': 'application/json',
+                    'xi-api-key': apiKey,
+                },
+                body: JSON.stringify({
+                    text: typedText.trim(),
+                    model_id: 'eleven_multilingual_v2',
+                    voice_settings: {
+                        stability: 0.5,
+                        similarity_boost: 0.75,
+                        speed: parseFloat(speechRateSlider.value),
+                    }
+                }),
+            });
+
+            if (!response.ok) {
+                const err = await response.text();
+                throw new Error(err);
+            }
+
+            const audioBlob = await response.blob();
+            const audioUrl = URL.createObjectURL(audioBlob);
+            currentAudio = new Audio(audioUrl);
+
+            currentAudio.onended = () => {
+                speakBtn.classList.remove('speaking');
+                URL.revokeObjectURL(audioUrl);
+                currentAudio = null;
+            };
+
+            currentAudio.onerror = () => {
+                speakBtn.classList.remove('speaking');
+                URL.revokeObjectURL(audioUrl);
+                currentAudio = null;
+                showToast('Error al reproducir audio');
+            };
+
+            currentAudio.play();
+        } catch (e) {
+            speakBtn.classList.remove('speaking');
+            console.error('ElevenLabs error:', e);
+            showToast('Error al conectar con ElevenLabs');
+        }
+    }
+
     // --- Toast notification ---
     function showToast(message) {
         // Remove existing toast
@@ -432,6 +533,9 @@
             theme: themeSelect.value,
             soundEnabled: soundToggle.checked,
             predictionEnabled: predictionToggle.checked,
+            elevenlabsKey: elevenlabsKeyInput.value,
+            elevenlabsVoice: elevenlabsVoiceInput.value,
+            speechRate: speechRateSlider.value,
         };
         try {
             localStorage.setItem('vdkSettings', JSON.stringify(settings));
@@ -458,6 +562,12 @@
             if (s.theme) themeSelect.value = s.theme;
             if (s.soundEnabled != null) soundToggle.checked = s.soundEnabled;
             if (s.predictionEnabled != null) predictionToggle.checked = s.predictionEnabled;
+            if (s.elevenlabsKey) elevenlabsKeyInput.value = s.elevenlabsKey;
+            if (s.elevenlabsVoice) elevenlabsVoiceInput.value = s.elevenlabsVoice;
+            if (s.speechRate) {
+                speechRateSlider.value = s.speechRate;
+                speechRateValue.textContent = s.speechRate + 'x';
+            }
         } catch (e) { /* ignore */ }
     }
 

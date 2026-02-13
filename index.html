@@ -77,6 +77,21 @@
                     <span>Predicción de palabras</span>
                 </label>
             </div>
+            <div class="setting-group">
+                <label for="elevenlabs-key">ElevenLabs API Key</label>
+                <input type="password" id="elevenlabs-key" class="setting-input" placeholder="Ingrese su API key...">
+            </div>
+            <div class="setting-group">
+                <label for="elevenlabs-voice">ElevenLabs Voice ID</label>
+                <input type="text" id="elevenlabs-voice" class="setting-input" placeholder="Voice ID (ej: EXAVITQu4vr4xnSDxMaL)">
+            </div>
+            <div class="setting-group">
+                <label for="speech-rate-slider">Velocidad de voz</label>
+                <div class="slider-row">
+                    <input type="range" id="speech-rate-slider" min="0.5" max="2" step="0.1" value="0.9">
+                    <span id="speech-rate-value" class="slider-value">0.9x</span>
+                </div>
+            </div>
         </div>
     </aside>
 
@@ -136,6 +151,10 @@
             <button id="clear-btn" class="clear-btn-large" aria-label="Borrar todo el texto">
                 <span class="btn-icon">🗑️</span>
                 <span>Borrar todo</span>
+            </button>
+            <button id="speak-btn" class="speak-btn-large" aria-label="Hablar texto">
+                <span class="btn-icon">🔊</span>
+                <span>Hablar</span>
             </button>
         </section>
 

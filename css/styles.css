@@ -403,6 +403,71 @@ body {
     width: 100%;
 }
 
+.speak-btn-large {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 24px;
+    min-width: 100px;
+    background: var(--surface);
+    color: var(--text-primary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    font-family: var(--font-family);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-sm);
+}
+
+.speak-btn-large .btn-icon {
+    font-size: 2rem;
+}
+
+.speak-btn-large:hover {
+    background: var(--surface-hover);
+    border-color: var(--accent);
+    box-shadow: 0 4px 16px var(--accent-glow);
+    transform: translateY(-1px);
+}
+
+.speak-btn-large.dwelling {
+    border-color: var(--accent);
+    box-shadow: 0 4px 16px var(--accent-glow);
+}
+
+.speak-btn-large.speaking {
+    border-color: #2ecc71;
+    box-shadow: 0 4px 16px rgba(46, 204, 113, 0.4);
+    animation: pulse-speak 1s ease-in-out infinite;
+}
+
+@keyframes pulse-speak {
+    0%, 100% { box-shadow: 0 4px 16px rgba(46, 204, 113, 0.3); }
+    50% { box-shadow: 0 4px 24px rgba(46, 204, 113, 0.6); }
+}
+
+.speak-btn-large .dwell-fill {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 4px;
+    background: var(--accent);
+    transition: width linear;
+    width: 0%;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.speak-btn-large.dwelling .dwell-fill {
+    width: 100%;
+}
+
 .text-output {
     min-height: 100px;
     max-height: 180px;
@@ -861,6 +926,27 @@ select {
 
 select:focus {
     border-color: var(--accent);
+}
+
+.setting-input {
+    padding: 10px 14px;
+    background: var(--surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-family);
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color var(--transition-fast);
+    width: 100%;
+}
+
+.setting-input:focus {
+    border-color: var(--accent);
+}
+
+.setting-input::placeholder {
+    color: var(--text-muted);
 }
 
 .toggle-label {
