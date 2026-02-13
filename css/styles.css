@@ -337,8 +337,70 @@ body {
 }
 
 /* --- Text Output --- */
-.text-display-section {
+.text-display-row {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
     flex-shrink: 0;
+}
+
+.text-display-section {
+    flex: 1;
+    flex-shrink: 0;
+}
+
+.clear-btn-large {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 24px;
+    min-width: 100px;
+    background: var(--surface);
+    color: var(--text-primary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    font-family: var(--font-family);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-sm);
+}
+
+.clear-btn-large .btn-icon {
+    font-size: 2rem;
+}
+
+.clear-btn-large:hover {
+    background: var(--surface-hover);
+    border-color: #e74c3c;
+    box-shadow: 0 4px 16px rgba(231, 76, 60, 0.3);
+    transform: translateY(-1px);
+}
+
+.clear-btn-large.dwelling {
+    border-color: #e74c3c;
+    box-shadow: 0 4px 16px rgba(231, 76, 60, 0.4);
+}
+
+.clear-btn-large .dwell-fill {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 4px;
+    background: #e74c3c;
+    transition: width linear;
+    width: 0%;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.clear-btn-large.dwelling .dwell-fill {
+    width: 100%;
 }
 
 .text-output {

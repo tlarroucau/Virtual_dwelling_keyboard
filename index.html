@@ -120,9 +120,6 @@
                 <button id="copy-btn" class="action-btn" aria-label="Copiar texto">
                     <span class="btn-icon">📋</span> Copiar
                 </button>
-                <button id="clear-btn" class="action-btn" aria-label="Borrar todo el texto">
-                    <span class="btn-icon">🗑️</span> Borrar todo
-                </button>
                 <button id="settings-btn" class="action-btn" aria-label="Abrir configuración">
                     <span class="btn-icon">⚙️</span> Ajustes
                 </button>
@@ -130,10 +127,16 @@
         </header>
 
         <!-- Text display area -->
-        <section class="text-display-section" aria-label="Texto escrito">
-            <div id="text-output" class="text-output" role="textbox" aria-multiline="true" aria-label="Texto escrito">
-                <span id="text-content"></span><span id="cursor-blink" class="cursor-blink">|</span>
+        <section class="text-display-row" aria-label="Texto escrito">
+            <div class="text-display-section">
+                <div id="text-output" class="text-output" role="textbox" aria-multiline="true" aria-label="Texto escrito">
+                    <span id="text-content"></span><span id="cursor-blink" class="cursor-blink">|</span>
+                </div>
             </div>
+            <button id="clear-btn" class="clear-btn-large" aria-label="Borrar todo el texto">
+                <span class="btn-icon">🗑️</span>
+                <span>Borrar todo</span>
+            </button>
         </section>
 
         <!-- Word predictions -->
