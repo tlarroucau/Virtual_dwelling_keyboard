@@ -9,6 +9,7 @@ const DwellEngine = (() => {
     let dwellTime = 800;       // milliseconds
     let cooldownTime = 300;    // milliseconds after activation
     let soundEnabled = true;
+    let dwellEnabled = true;   // when false, only click activates keys
 
     // State
     let activeKey = null;       // currently dwelling key code
@@ -34,6 +35,7 @@ const DwellEngine = (() => {
         if (options.dwellTime != null) dwellTime = options.dwellTime;
         if (options.cooldownTime != null) cooldownTime = options.cooldownTime;
         if (options.soundEnabled != null) soundEnabled = options.soundEnabled;
+        if (options.dwellEnabled != null) dwellEnabled = options.dwellEnabled;
 
         ringEl = document.getElementById('dwell-indicator');
         ringProgress = document.getElementById('dwell-ring-progress');
@@ -48,13 +50,19 @@ const DwellEngine = (() => {
      */
     function attachToKeys(keyElements) {
         Object.entries(keyElements).forEach(([code, { el }]) => {
-            el.addEventListener('pointerenter', (e) => startDwell(code, el, e));
-            el.addEventListener('pointerleave', () => cancelDwell(code, el));
-            el.addEventListener('pointermove', (e) => updateRingPosition(e));
-            // Click fallback — immediate activation
+            el.addEventListener('pointerenter', (e) => {
+                if (dwellEnabled) startDwell(code, el, e);
+            });
+            el.addEventListener('pointerleave', () => {
+                if (dwellEnabled) cancelDwell(code, el);
+            });
+            el.addEventListener('pointermove', (e) => {
+                if (dwellEnabled) updateRingPosition(e);
+            });
+            // Click — immediate activation (always works)
             el.addEventListener('pointerdown', (e) => {
                 e.preventDefault();
-                cancelDwell(code, el);
+                if (dwellEnabled) cancelDwell(code, el);
                 activate(code, el);
             });
         });
@@ -70,6 +78,7 @@ const DwellEngine = (() => {
         let predDwellBg = btnEl.querySelector('.dwell-fill');
 
         btnEl.addEventListener('pointerenter', () => {
+            if (!dwellEnabled) return;
             btnEl.classList.add('dwelling');
             if (predDwellBg) {
                 predDwellBg.style.transition = `width ${dwellTime}ms linear`;
@@ -87,6 +96,7 @@ const DwellEngine = (() => {
         });
 
         btnEl.addEventListener('pointerleave', () => {
+            if (!dwellEnabled) return;
             btnEl.classList.remove('dwelling');
             if (predDwellBg) {
                 predDwellBg.style.transition = 'none';
@@ -264,6 +274,14 @@ const DwellEngine = (() => {
         return dwellTime;
     }
 
+    function setDwellEnabled(enabled) {
+        dwellEnabled = enabled;
+    }
+
+    function isDwellEnabled() {
+        return dwellEnabled;
+    }
+
     return {
         init,
         attachToKeys,
@@ -271,6 +289,8 @@ const DwellEngine = (() => {
         setDwellTime,
         setCooldownTime,
         setSoundEnabled,
+        setDwellEnabled,
+        isDwellEnabled,
         getDwellTime,
     };
 })();

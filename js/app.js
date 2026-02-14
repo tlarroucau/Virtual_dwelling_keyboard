@@ -38,10 +38,13 @@
     const elevenlabsVoiceInput = document.getElementById('elevenlabs-voice');
     const speechRateSlider = document.getElementById('speech-rate-slider');
     const speechRateValue = document.getElementById('speech-rate-value');
+    const dwellToggle = document.getElementById('dwell-toggle');
+    const arrowNavToggle = document.getElementById('arrow-nav-toggle');
 
     // --- State ---
     let typedText = '';
     let currentWord = '';
+    let arrowNavEnabled = false;
 
     // --- Initialize ---
     function init() {
@@ -60,6 +63,7 @@
             dwellTime: parseInt(dwellTimeSlider.value),
             cooldownTime: parseInt(cooldownSlider.value),
             soundEnabled: soundToggle.checked,
+            dwellEnabled: dwellToggle.checked,
         });
 
         // Attach dwell listeners to keys
@@ -69,6 +73,9 @@
         setupSettingsEvents();
         setupActionButtons();
         setupQuickNeeds();
+
+        // Arrow navigation
+        setupArrowNavigation();
 
         // Initial predictions
         updatePredictions();
@@ -307,6 +314,26 @@
         predictionToggle.addEventListener('change', () => {
             Predictor.setEnabled(predictionToggle.checked);
             updatePredictions();
+            saveSettings();
+        });
+
+        // Dwell toggle
+        dwellToggle.addEventListener('change', () => {
+            DwellEngine.setDwellEnabled(dwellToggle.checked);
+            // Show/hide dwell-specific settings
+            const dwellSettings = [dwellTimeSlider.closest('.setting-group'), cooldownSlider.closest('.setting-group')];
+            dwellSettings.forEach(el => {
+                if (el) el.style.opacity = dwellToggle.checked ? '1' : '0.4';
+            });
+            saveSettings();
+        });
+
+        // Arrow navigation toggle
+        arrowNavToggle.addEventListener('change', () => {
+            arrowNavEnabled = arrowNavToggle.checked;
+            if (!arrowNavEnabled) {
+                clearArrowNavFocus();
+            }
             saveSettings();
         });
     }
@@ -549,6 +576,8 @@
             elevenlabsKey: elevenlabsKeyInput.value,
             elevenlabsVoice: elevenlabsVoiceInput.value,
             speechRate: speechRateSlider.value,
+            dwellEnabled: dwellToggle.checked,
+            arrowNavEnabled: arrowNavToggle.checked,
         };
         try {
             localStorage.setItem('vdkSettings', JSON.stringify(settings));
@@ -581,16 +610,220 @@
                 speechRateSlider.value = s.speechRate;
                 speechRateValue.textContent = s.speechRate + 'x';
             }
+            if (s.dwellEnabled != null) dwellToggle.checked = s.dwellEnabled;
+            if (s.arrowNavEnabled != null) {
+                arrowNavToggle.checked = s.arrowNavEnabled;
+                arrowNavEnabled = s.arrowNavEnabled;
+            }
         } catch (e) { /* ignore */ }
     }
 
-    // --- Keyboard shortcut support (physical keyboard, for testing) ---
-    document.addEventListener('keydown', (e) => {
-        // Escape closes settings
-        if (e.key === 'Escape') {
-            closeSettings();
+    // ========================================================
+    // Arrow navigation engine
+    // ========================================================
+    let navGrid = [];          // 2D array of focusable elements
+    let navRow = 0;
+    let navCol = 0;
+    let navSection = 'keyboard'; // 'needs' | 'actions' | 'predictions' | 'keyboard'
+    let navFocusedEl = null;
+
+    /**
+     * Build the navigation grid from all interactive elements.
+     */
+    function buildNavGrid() {
+        navGrid = [];
+
+        // Section 1: Quick-need buttons (wrap into rows of ~8)
+        const needBtns = Array.from(document.querySelectorAll('.need-btn'));
+        const needRowSize = 8;
+        for (let i = 0; i < needBtns.length; i += needRowSize) {
+            navGrid.push({ section: 'needs', elements: needBtns.slice(i, i + needRowSize) });
         }
-    });
+
+        // Section 2: Action buttons row (text-display-row buttons + top-bar actions)
+        const actionRow = [];
+        const speakEl = document.getElementById('speak-btn');
+        const delWordEl = document.getElementById('delete-word-btn');
+        const clearEl = document.getElementById('clear-btn');
+        const copyEl = document.getElementById('copy-btn');
+        const settEl = document.getElementById('settings-btn');
+        [speakEl, delWordEl, clearEl, copyEl, settEl].forEach(el => {
+            if (el) actionRow.push(el);
+        });
+        if (actionRow.length > 0) {
+            navGrid.push({ section: 'actions', elements: actionRow });
+        }
+
+        // Section 3: Prediction buttons
+        const predBtns = Array.from(document.querySelectorAll('.prediction-btn'));
+        if (predBtns.length > 0) {
+            navGrid.push({ section: 'predictions', elements: predBtns });
+        }
+
+        // Section 4: Keyboard rows
+        const keyboardRows = document.querySelectorAll('.keyboard-row');
+        keyboardRows.forEach(row => {
+            const keys = Array.from(row.querySelectorAll('.key'));
+            if (keys.length > 0) {
+                navGrid.push({ section: 'keyboard', elements: keys });
+            }
+        });
+    }
+
+    /**
+     * Set focus highlight on the element at current navRow/navCol.
+     */
+    function applyNavFocus() {
+        // Remove old focus
+        clearArrowNavFocus();
+
+        if (navGrid.length === 0) return;
+
+        // Clamp row
+        navRow = Math.max(0, Math.min(navRow, navGrid.length - 1));
+        const row = navGrid[navRow].elements;
+        // Clamp col
+        navCol = Math.max(0, Math.min(navCol, row.length - 1));
+
+        const el = row[navCol];
+        if (el) {
+            el.classList.add('arrow-focused');
+            el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+            navFocusedEl = el;
+        }
+    }
+
+    function clearArrowNavFocus() {
+        if (navFocusedEl) {
+            navFocusedEl.classList.remove('arrow-focused');
+            navFocusedEl = null;
+        }
+        // Also clear any stale ones
+        document.querySelectorAll('.arrow-focused').forEach(el => el.classList.remove('arrow-focused'));
+    }
+
+    /**
+     * Set up global key listener for arrow navigation.
+     */
+    function setupArrowNavigation() {
+        document.addEventListener('keydown', (e) => {
+            // Escape always closes settings
+            if (e.key === 'Escape') {
+                closeSettings();
+                return;
+            }
+
+            if (!arrowNavEnabled) return;
+
+            // Don't intercept when typing into settings inputs
+            const tag = e.target.tagName;
+            if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+
+            switch (e.key) {
+                case 'ArrowRight':
+                    e.preventDefault();
+                    buildNavGrid();
+                    navCol++;
+                    if (navGrid[navRow] && navCol >= navGrid[navRow].elements.length) {
+                        navCol = 0; // wrap
+                    }
+                    applyNavFocus();
+                    break;
+
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    buildNavGrid();
+                    navCol--;
+                    if (navCol < 0) {
+                        navCol = navGrid[navRow] ? navGrid[navRow].elements.length - 1 : 0;
+                    }
+                    applyNavFocus();
+                    break;
+
+                case 'ArrowDown':
+                    e.preventDefault();
+                    buildNavGrid();
+                    navRow++;
+                    if (navRow >= navGrid.length) navRow = 0; // wrap
+                    // Try to keep col proportional
+                    if (navGrid[navRow]) {
+                        const ratio = navGrid[Math.max(0, navRow - 1 < 0 ? navGrid.length - 1 : navRow - 1)]
+                            ? navCol / (navGrid[Math.max(0, navRow - 1 < 0 ? navGrid.length - 1 : navRow - 1)].elements.length - 1 || 1)
+                            : 0;
+                        navCol = Math.round(ratio * (navGrid[navRow].elements.length - 1));
+                    }
+                    applyNavFocus();
+                    break;
+
+                case 'ArrowUp':
+                    e.preventDefault();
+                    buildNavGrid();
+                    const prevRow = navRow;
+                    navRow--;
+                    if (navRow < 0) navRow = navGrid.length - 1; // wrap
+                    // Keep col proportional
+                    if (navGrid[navRow] && navGrid[prevRow]) {
+                        const ratio = navCol / (navGrid[prevRow].elements.length - 1 || 1);
+                        navCol = Math.round(ratio * (navGrid[navRow].elements.length - 1));
+                    }
+                    applyNavFocus();
+                    break;
+
+                case 'Enter':
+                case ' ':
+                    e.preventDefault();
+                    if (navFocusedEl) {
+                        // Simulate click/activation
+                        navFocusedEl.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+                    }
+                    break;
+
+                case 'Tab':
+                    // Move to next section
+                    e.preventDefault();
+                    buildNavGrid();
+                    if (e.shiftKey) {
+                        // Find previous section
+                        const curSection = navGrid[navRow]?.section;
+                        for (let i = navRow - 1; i >= 0; i--) {
+                            if (navGrid[i].section !== curSection) {
+                                navRow = i;
+                                navCol = 0;
+                                break;
+                            }
+                        }
+                        if (navGrid[navRow]?.section === curSection) {
+                            // Wrap to last section
+                            for (let i = navGrid.length - 1; i >= 0; i--) {
+                                if (navGrid[i].section !== curSection) {
+                                    navRow = i;
+                                    navCol = 0;
+                                    break;
+                                }
+                            }
+                        }
+                    } else {
+                        // Find next section
+                        const curSection = navGrid[navRow]?.section;
+                        let found = false;
+                        for (let i = navRow + 1; i < navGrid.length; i++) {
+                            if (navGrid[i].section !== curSection) {
+                                navRow = i;
+                                navCol = 0;
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            navRow = 0;
+                            navCol = 0;
+                        }
+                    }
+                    applyNavFocus();
+                    break;
+            }
+        });
+    }
 
     // --- Start ---
     let initialized = false;
