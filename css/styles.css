@@ -203,8 +203,8 @@ body {
 
 .need-btn .need-label {
     font-size: 0.6rem;
-    font-weight: 600;
-    color: var(--text-secondary);
+    font-weight: 800;
+    color: var(--text-primary);
     line-height: 1;
 }
 
