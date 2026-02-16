@@ -811,16 +811,9 @@ body {
     box-shadow: 0 6px 24px var(--accent-glow);
 }
 
-/* High contrast: space bar needs dark text on yellow bg */
+/* High contrast: keep yellow space bar but use dark text for readability */
 [data-theme="high-contrast"] .key-accent {
-    background: linear-gradient(135deg, #00cc66, #00ff88);
     color: #000;
-    border-color: #00ff88;
-}
-
-[data-theme="high-contrast"] .key-accent:hover {
-    box-shadow: 0 6px 24px rgba(0, 255, 136, 0.5);
-    border-color: #00ff88;
 }
 
 /* Light theme: slightly deeper gradient for visibility */
