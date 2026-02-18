@@ -18,6 +18,7 @@
     const deleteWordBtn = document.getElementById('delete-word-btn');
     const speakBtn = document.getElementById('speak-btn');
     const copyBtn = document.getElementById('copy-btn');
+    const gamesBtn = document.getElementById('games-btn');
     const settingsBtn = document.getElementById('settings-btn');
     const closeSettingsBtn = document.getElementById('close-settings');
     const settingsPanel = document.getElementById('settings-panel');
@@ -407,11 +408,16 @@
             speakText();
         };
 
+        const gamesAction = () => {
+            window.location.href = 'games.html';
+        };
+
         // Attach dwell + click to each action button
         attachDwellToActionBtn(clearBtn, clearAction);
         attachDwellToActionBtn(deleteWordBtn, deleteWordAction);
         attachDwellToActionBtn(speakBtn, speakAction);
         attachDwellToActionBtn(copyBtn, copyAction);
+        if (gamesBtn) attachDwellToActionBtn(gamesBtn, gamesAction);
         attachDwellToActionBtn(settingsBtn, settingsAction);
     }
 

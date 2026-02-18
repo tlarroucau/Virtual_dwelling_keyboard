@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juegos — Teclado Virtual Accesible</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/games.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <main class="app-container games-app">
+        <!-- Top bar -->
+        <header class="games-top-bar">
+            <button id="back-btn" class="action-btn action-btn-large" aria-label="Volver al teclado" onclick="window.location.href='index.html'">
+                <span class="btn-icon">⬅️</span> <span>Volver</span>
+            </button>
+            <h1 class="games-title">🎮 Juegos</h1>
+            <div class="games-top-spacer"></div>
+        </header>
+
+        <!-- Game selector -->
+        <section class="game-selector" id="game-selector" aria-label="Seleccionar juego">
+            <button class="game-card sudoku-card" id="select-sudoku" aria-label="Jugar Sudoku">
+                <!-- Mini Sudoku visual -->
+                <div class="sudoku-preview" aria-hidden="true">
+                    <div class="sp-row">
+                        <span class="sp-cell sp-given">5</span>
+                        <span class="sp-cell sp-given">3</span>
+                        <span class="sp-cell sp-empty"></span>
+                        <span class="sp-cell sp-given">6</span>
+                    </div>
+                    <div class="sp-row">
+                        <span class="sp-cell sp-given">6</span>
+                        <span class="sp-cell sp-empty"></span>
+                        <span class="sp-cell sp-given">1</span>
+                        <span class="sp-cell sp-given">9</span>
+                    </div>
+                    <div class="sp-row">
+                        <span class="sp-cell sp-empty"></span>
+                        <span class="sp-cell sp-given">9</span>
+                        <span class="sp-cell sp-given">8</span>
+                        <span class="sp-cell sp-empty"></span>
+                    </div>
+                    <div class="sp-row">
+                        <span class="sp-cell sp-given">8</span>
+                        <span class="sp-cell sp-empty"></span>
+                        <span class="sp-cell sp-empty"></span>
+                        <span class="sp-cell sp-given">6</span>
+                    </div>
+                </div>
+                <span class="game-card-title">Sudoku</span>
+                <span class="game-card-desc">Completa la cuadrícula 9×9 con números del 1 al 9</span>
+                <div class="dwell-fill"></div>
+            </button>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- SUDOKU GAME                                    -->
+        <!-- ============================================== -->
+        <section class="game-area" id="sudoku-area" style="display:none" aria-label="Juego de Sudoku">
+            <div class="game-header">
+                <h2 class="game-name">🔢 Sudoku</h2>
+                <div class="game-controls">
+                    <button class="game-btn" id="sudoku-new" aria-label="Nuevo juego">
+                        <span>🔄</span> <span>Nuevo</span>
+                        <div class="dwell-fill"></div>
+                    </button>
+                    <button class="game-btn" id="sudoku-check" aria-label="Verificar solución">
+                        <span>✅</span> <span>Verificar</span>
+                        <div class="dwell-fill"></div>
+                    </button>
+                    <button class="game-btn" id="sudoku-hint" aria-label="Pista">
+                        <span>💡</span> <span>Pista</span>
+                        <div class="dwell-fill"></div>
+                    </button>
+                    <button class="game-btn" id="sudoku-back-to-menu" aria-label="Volver al menú">
+                        <span>📋</span> <span>Menú</span>
+                        <div class="dwell-fill"></div>
+                    </button>
+                </div>
+            </div>
+            <div class="sudoku-container">
+                <div class="sudoku-board" id="sudoku-board" aria-label="Tablero de Sudoku">
+                    <!-- 9x9 grid rendered by JS -->
+                </div>
+                <div class="sudoku-numpad" id="sudoku-numpad" aria-label="Teclado numérico">
+                    <!-- Number buttons 1-9 + erase -->
+                </div>
+            </div>
+            <div class="game-message" id="sudoku-message"></div>
+        </section>
+
+    </main>
+
+    <script src="js/games.js"></script>
+</body>
+</html>
