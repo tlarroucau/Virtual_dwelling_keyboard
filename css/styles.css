@@ -1049,6 +1049,13 @@ select:focus {
     cursor: pointer;
 }
 
+.dependent-setting {
+    margin-left: 18px;
+    padding-left: 12px;
+    border-left: 2px solid var(--border);
+    transition: opacity var(--transition-fast), border-color var(--transition-fast);
+}
+
 /* --- Arrow navigation focus --- */
 .arrow-focused {
     outline: 3px solid var(--accent) !important;

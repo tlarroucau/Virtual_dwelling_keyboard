@@ -41,11 +41,15 @@
     const speechRateValue = document.getElementById('speech-rate-value');
     const dwellToggle = document.getElementById('dwell-toggle');
     const arrowNavToggle = document.getElementById('arrow-nav-toggle');
+    const arrowFocusDwellToggle = document.getElementById('arrow-focus-dwell-toggle');
+    const arrowSingleStepToggle = document.getElementById('arrow-single-step-toggle');
 
     // --- State ---
     let typedText = '';
     let currentWord = '';
     let arrowNavEnabled = false;
+    let arrowFocusDwellEnabled = false;
+    let arrowNavSingleStepEnabled = false;
 
     // --- Initialize ---
     function init() {
@@ -77,6 +81,7 @@
 
         // Arrow navigation
         setupArrowNavigation();
+        updateNavigationSettingsState();
 
         // Initial predictions
         updatePredictions();
@@ -270,6 +275,9 @@
             const val = parseInt(dwellTimeSlider.value);
             dwellTimeValue.textContent = val + ' ms';
             DwellEngine.setDwellTime(val);
+            if (focusDwellEl && isArrowFocusDwellActive()) {
+                startArrowFocusDwell(navFocusedEl);
+            }
             saveSettings();
         });
 
@@ -326,6 +334,7 @@
             dwellSettings.forEach(el => {
                 if (el) el.style.opacity = dwellToggle.checked ? '1' : '0.4';
             });
+            updateNavigationSettingsState();
             saveSettings();
         });
 
@@ -333,8 +342,25 @@
         arrowNavToggle.addEventListener('change', () => {
             arrowNavEnabled = arrowNavToggle.checked;
             if (!arrowNavEnabled) {
+                pressedArrowKeys.clear();
                 clearArrowNavFocus();
             }
+            updateNavigationSettingsState();
+            saveSettings();
+        });
+
+        arrowFocusDwellToggle.addEventListener('change', () => {
+            arrowFocusDwellEnabled = arrowFocusDwellToggle.checked;
+            updateNavigationSettingsState();
+            saveSettings();
+        });
+
+        arrowSingleStepToggle.addEventListener('change', () => {
+            arrowNavSingleStepEnabled = arrowSingleStepToggle.checked;
+            if (!arrowNavSingleStepEnabled) {
+                pressedArrowKeys.clear();
+            }
+            updateNavigationSettingsState();
             saveSettings();
         });
     }
@@ -363,6 +389,29 @@
 
     function applyEmojiSize(size) {
         document.body.setAttribute('data-emoji-size', size);
+    }
+
+    function updateNavigationSettingsState() {
+        const combinedGroup = arrowFocusDwellToggle.closest('.setting-group');
+        const singleStepGroup = arrowSingleStepToggle.closest('.setting-group');
+        const combinedAvailable = arrowNavEnabled && DwellEngine.isDwellEnabled();
+        const singleStepAvailable = arrowNavEnabled;
+
+        if (combinedGroup) {
+            combinedGroup.style.opacity = combinedAvailable ? '1' : '0.4';
+            combinedGroup.style.borderColor = combinedAvailable ? 'var(--accent)' : 'var(--border)';
+        }
+
+        if (singleStepGroup) {
+            singleStepGroup.style.opacity = singleStepAvailable ? '1' : '0.4';
+            singleStepGroup.style.borderColor = singleStepAvailable ? 'var(--accent)' : 'var(--border)';
+        }
+
+        if (isArrowFocusDwellActive()) {
+            if (navFocusedEl) startArrowFocusDwell(navFocusedEl);
+        } else {
+            cancelArrowFocusDwell();
+        }
     }
 
     // --- Action Buttons ---
@@ -584,6 +633,8 @@
             speechRate: speechRateSlider.value,
             dwellEnabled: dwellToggle.checked,
             arrowNavEnabled: arrowNavToggle.checked,
+            arrowFocusDwellEnabled: arrowFocusDwellToggle.checked,
+            arrowNavSingleStepEnabled: arrowSingleStepToggle.checked,
         };
         try {
             localStorage.setItem('vdkSettings', JSON.stringify(settings));
@@ -621,17 +672,66 @@
                 arrowNavToggle.checked = s.arrowNavEnabled;
                 arrowNavEnabled = s.arrowNavEnabled;
             }
+            if (s.arrowFocusDwellEnabled != null) {
+                arrowFocusDwellToggle.checked = s.arrowFocusDwellEnabled;
+                arrowFocusDwellEnabled = s.arrowFocusDwellEnabled;
+            }
+            if (s.arrowNavSingleStepEnabled != null) {
+                arrowSingleStepToggle.checked = s.arrowNavSingleStepEnabled;
+                arrowNavSingleStepEnabled = s.arrowNavSingleStepEnabled;
+            }
         } catch (e) { /* ignore */ }
     }
 
     // ========================================================
     // Arrow navigation engine
     // ========================================================
+    const VISUAL_ROW_TOLERANCE = 12;
+    const ARROW_KEYS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
     let navGrid = [];          // 2D array of focusable elements
     let navRow = 0;
     let navCol = 0;
-    let navSection = 'keyboard'; // 'needs' | 'actions' | 'predictions' | 'keyboard'
     let navFocusedEl = null;
+    let focusDwellTimer = null;
+    let focusDwellEl = null;
+    const pressedArrowKeys = new Set();
+
+    function isElementVisible(el) {
+        return Boolean(el && el.isConnected && el.getClientRects().length > 0);
+    }
+
+    function groupElementsByVisualRows(elements, section) {
+        const positioned = elements
+            .filter(isElementVisible)
+            .map((el) => ({ el, rect: el.getBoundingClientRect() }))
+            .sort((a, b) => {
+                if (Math.abs(a.rect.top - b.rect.top) > VISUAL_ROW_TOLERANCE) {
+                    return a.rect.top - b.rect.top;
+                }
+                return a.rect.left - b.rect.left;
+            });
+
+        const rows = [];
+
+        positioned.forEach(({ el, rect }) => {
+            let row = rows.find((candidate) => Math.abs(candidate.top - rect.top) <= VISUAL_ROW_TOLERANCE);
+            if (!row) {
+                row = { top: rect.top, elements: [] };
+                rows.push(row);
+            }
+
+            row.top = ((row.top * row.elements.length) + rect.top) / (row.elements.length + 1);
+            row.elements.push({ el, left: rect.left });
+        });
+
+        return rows
+            .sort((a, b) => a.top - b.top)
+            .map((row) => ({
+                section,
+                elements: row.elements.sort((a, b) => a.left - b.left).map((item) => item.el),
+            }))
+            .filter((row) => row.elements.length > 0);
+    }
 
     /**
      * Build the navigation grid from all interactive elements.
@@ -639,41 +739,130 @@
     function buildNavGrid() {
         navGrid = [];
 
-        // Section 1: Quick-need buttons (wrap into rows of ~8)
-        const needBtns = Array.from(document.querySelectorAll('.need-btn'));
-        const needRowSize = 8;
-        for (let i = 0; i < needBtns.length; i += needRowSize) {
-            navGrid.push({ section: 'needs', elements: needBtns.slice(i, i + needRowSize) });
-        }
+        navGrid.push(...groupElementsByVisualRows(
+            Array.from(document.querySelectorAll('.quick-needs .need-btn')),
+            'needs'
+        ));
+        navGrid.push(...groupElementsByVisualRows(
+            Array.from(document.querySelectorAll('.top-bar-actions .action-btn')),
+            'top-actions'
+        ));
+        navGrid.push(...groupElementsByVisualRows(
+            [
+                document.getElementById('speak-btn'),
+                document.getElementById('delete-word-btn'),
+                document.getElementById('clear-btn'),
+            ],
+            'text-actions'
+        ));
+        navGrid.push(...groupElementsByVisualRows(
+            Array.from(document.querySelectorAll('.prediction-btn')),
+            'predictions'
+        ));
 
-        // Section 2: Action buttons row (text-display-row buttons + top-bar actions)
-        const actionRow = [];
-        const speakEl = document.getElementById('speak-btn');
-        const delWordEl = document.getElementById('delete-word-btn');
-        const clearEl = document.getElementById('clear-btn');
-        const copyEl = document.getElementById('copy-btn');
-        const settEl = document.getElementById('settings-btn');
-        [speakEl, delWordEl, clearEl, copyEl, settEl].forEach(el => {
-            if (el) actionRow.push(el);
-        });
-        if (actionRow.length > 0) {
-            navGrid.push({ section: 'actions', elements: actionRow });
-        }
-
-        // Section 3: Prediction buttons
-        const predBtns = Array.from(document.querySelectorAll('.prediction-btn'));
-        if (predBtns.length > 0) {
-            navGrid.push({ section: 'predictions', elements: predBtns });
-        }
-
-        // Section 4: Keyboard rows
-        const keyboardRows = document.querySelectorAll('.keyboard-row');
-        keyboardRows.forEach(row => {
-            const keys = Array.from(row.querySelectorAll('.key'));
+        document.querySelectorAll('.keyboard-row').forEach((row) => {
+            const keys = Array.from(row.querySelectorAll('.key')).filter(isElementVisible);
             if (keys.length > 0) {
                 navGrid.push({ section: 'keyboard', elements: keys });
             }
         });
+    }
+
+    function isArrowFocusDwellActive() {
+        return arrowNavEnabled && arrowFocusDwellEnabled && DwellEngine.isDwellEnabled();
+    }
+
+    function resetFocusDwellVisual(el) {
+        if (!el) return;
+
+        el.classList.remove('dwelling');
+
+        const fill = el.querySelector('.dwell-fill');
+        if (fill) {
+            fill.style.transition = 'none';
+            fill.style.width = '0%';
+        }
+    }
+
+    function cancelArrowFocusDwell() {
+        if (focusDwellTimer) {
+            clearTimeout(focusDwellTimer);
+            focusDwellTimer = null;
+        }
+
+        if (focusDwellEl) {
+            resetFocusDwellVisual(focusDwellEl);
+            focusDwellEl = null;
+        }
+    }
+
+    function dispatchSyntheticPointerDown(el) {
+        if (!el) return;
+
+        const downEvent = typeof PointerEvent === 'function'
+            ? new PointerEvent('pointerdown', { bubbles: true })
+            : new MouseEvent('mousedown', { bubbles: true });
+
+        el.dispatchEvent(downEvent);
+    }
+
+    function startArrowFocusDwell(el) {
+        cancelArrowFocusDwell();
+
+        if (!el || !isArrowFocusDwellActive()) return;
+
+        const dwellMs = DwellEngine.getDwellTime();
+        const fill = el.querySelector('.dwell-fill');
+        focusDwellEl = el;
+
+        if (el.classList.contains('key')) {
+            el.style.setProperty('--dwell-duration', dwellMs + 'ms');
+        }
+
+        if (fill) {
+            fill.style.transition = 'none';
+            fill.style.width = '0%';
+            fill.getBoundingClientRect();
+            fill.style.transition = `width ${dwellMs}ms linear`;
+        }
+
+        el.getBoundingClientRect();
+        el.classList.add('dwelling');
+        if (fill) {
+            fill.style.width = '100%';
+        }
+
+        focusDwellTimer = setTimeout(() => {
+            if (focusDwellEl !== el || navFocusedEl !== el) return;
+            cancelArrowFocusDwell();
+            dispatchSyntheticPointerDown(el);
+        }, dwellMs);
+    }
+
+    function focusFirstNavigableElement() {
+        buildNavGrid();
+        if (navGrid.length === 0) return false;
+        navRow = 0;
+        navCol = 0;
+        applyNavFocus();
+        return true;
+    }
+
+    function syncNavPositionWithFocusedElement() {
+        if (!navFocusedEl || !navFocusedEl.isConnected) return false;
+
+        for (let rowIndex = 0; rowIndex < navGrid.length; rowIndex++) {
+            const colIndex = navGrid[rowIndex].elements.indexOf(navFocusedEl);
+            if (colIndex !== -1) {
+                navRow = rowIndex;
+                navCol = colIndex;
+                return true;
+            }
+        }
+
+        navRow = 0;
+        navCol = 0;
+        return false;
     }
 
     /**
@@ -696,10 +885,13 @@
             el.classList.add('arrow-focused');
             el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
             navFocusedEl = el;
+            startArrowFocusDwell(el);
         }
     }
 
     function clearArrowNavFocus() {
+        cancelArrowFocusDwell();
+
         if (navFocusedEl) {
             navFocusedEl.classList.remove('arrow-focused');
             navFocusedEl = null;
@@ -725,10 +917,26 @@
             const tag = e.target.tagName;
             if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
 
+            if (ARROW_KEYS.has(e.key) && arrowNavSingleStepEnabled) {
+                if (e.repeat || pressedArrowKeys.has(e.key)) {
+                    e.preventDefault();
+                    return;
+                }
+                pressedArrowKeys.add(e.key);
+            }
+
+            const hasValidFocus = navFocusedEl && navFocusedEl.isConnected;
+
             switch (e.key) {
                 case 'ArrowRight':
                     e.preventDefault();
+                    if (!hasValidFocus) {
+                        focusFirstNavigableElement();
+                        break;
+                    }
                     buildNavGrid();
+                    if (navGrid.length === 0) break;
+                    syncNavPositionWithFocusedElement();
                     navCol++;
                     if (navGrid[navRow] && navCol >= navGrid[navRow].elements.length) {
                         navCol = 0; // wrap
@@ -738,7 +946,13 @@
 
                 case 'ArrowLeft':
                     e.preventDefault();
+                    if (!hasValidFocus) {
+                        focusFirstNavigableElement();
+                        break;
+                    }
                     buildNavGrid();
+                    if (navGrid.length === 0) break;
+                    syncNavPositionWithFocusedElement();
                     navCol--;
                     if (navCol < 0) {
                         navCol = navGrid[navRow] ? navGrid[navRow].elements.length - 1 : 0;
@@ -748,14 +962,19 @@
 
                 case 'ArrowDown':
                     e.preventDefault();
+                    if (!hasValidFocus) {
+                        focusFirstNavigableElement();
+                        break;
+                    }
                     buildNavGrid();
+                    if (navGrid.length === 0) break;
+                    syncNavPositionWithFocusedElement();
+                    const previousDownRow = navRow;
                     navRow++;
                     if (navRow >= navGrid.length) navRow = 0; // wrap
                     // Try to keep col proportional
-                    if (navGrid[navRow]) {
-                        const ratio = navGrid[Math.max(0, navRow - 1 < 0 ? navGrid.length - 1 : navRow - 1)]
-                            ? navCol / (navGrid[Math.max(0, navRow - 1 < 0 ? navGrid.length - 1 : navRow - 1)].elements.length - 1 || 1)
-                            : 0;
+                    if (navGrid[navRow] && navGrid[previousDownRow]) {
+                        const ratio = navCol / (navGrid[previousDownRow].elements.length - 1 || 1);
                         navCol = Math.round(ratio * (navGrid[navRow].elements.length - 1));
                     }
                     applyNavFocus();
@@ -763,7 +982,13 @@
 
                 case 'ArrowUp':
                     e.preventDefault();
+                    if (!hasValidFocus) {
+                        focusFirstNavigableElement();
+                        break;
+                    }
                     buildNavGrid();
+                    if (navGrid.length === 0) break;
+                    syncNavPositionWithFocusedElement();
                     const prevRow = navRow;
                     navRow--;
                     if (navRow < 0) navRow = navGrid.length - 1; // wrap
@@ -778,16 +1003,24 @@
                 case 'Enter':
                 case ' ':
                     e.preventDefault();
+                    if (isArrowFocusDwellActive()) {
+                        break;
+                    }
                     if (navFocusedEl) {
-                        // Simulate click/activation
-                        navFocusedEl.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+                        dispatchSyntheticPointerDown(navFocusedEl);
                     }
                     break;
 
                 case 'Tab':
                     // Move to next section
                     e.preventDefault();
+                    if (!hasValidFocus) {
+                        focusFirstNavigableElement();
+                        break;
+                    }
                     buildNavGrid();
+                    if (navGrid.length === 0) break;
+                    syncNavPositionWithFocusedElement();
                     if (e.shiftKey) {
                         // Find previous section
                         const curSection = navGrid[navRow]?.section;
@@ -828,6 +1061,17 @@
                     applyNavFocus();
                     break;
             }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (ARROW_KEYS.has(e.key)) {
+                pressedArrowKeys.delete(e.key);
+            }
+        });
+
+        window.addEventListener('blur', () => {
+            pressedArrowKeys.clear();
+            cancelArrowFocusDwell();
         });
     }
 
