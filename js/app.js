@@ -17,7 +17,6 @@
     const clearBtn = document.getElementById('clear-btn');
     const deleteWordBtn = document.getElementById('delete-word-btn');
     const speakBtn = document.getElementById('speak-btn');
-    const copyBtn = document.getElementById('copy-btn');
     const gamesBtn = document.getElementById('games-btn');
     const settingsBtn = document.getElementById('settings-btn');
     const closeSettingsBtn = document.getElementById('close-settings');
@@ -434,21 +433,6 @@
             updatePredictions();
         };
 
-        const copyAction = () => {
-            if (typedText.length === 0) return;
-            navigator.clipboard.writeText(typedText).then(() => {
-                showToast('¡Texto copiado!');
-            }).catch(() => {
-                const ta = document.createElement('textarea');
-                ta.value = typedText;
-                document.body.appendChild(ta);
-                ta.select();
-                document.execCommand('copy');
-                document.body.removeChild(ta);
-                showToast('¡Texto copiado!');
-            });
-        };
-
         const settingsAction = () => {
             openSettings();
         };
@@ -465,7 +449,6 @@
         attachDwellToActionBtn(clearBtn, clearAction);
         attachDwellToActionBtn(deleteWordBtn, deleteWordAction);
         attachDwellToActionBtn(speakBtn, speakAction);
-        attachDwellToActionBtn(copyBtn, copyAction);
         if (gamesBtn) attachDwellToActionBtn(gamesBtn, gamesAction);
         attachDwellToActionBtn(settingsBtn, settingsAction);
     }
