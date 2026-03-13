@@ -1120,6 +1120,117 @@ select:focus {
 }
 
 /* =============================================================
+   Emoji Toggle Button & Fullscreen Overlay
+   ============================================================= */
+
+/* Emoji toggle button — hidden on desktop by default */
+.emoji-toggle-btn {
+    display: none;
+}
+
+/* Emoji fullscreen overlay */
+.emoji-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 900;
+    background: var(--bg-primary);
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.emoji-overlay.open {
+    display: flex;
+}
+
+.emoji-overlay-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 8px 20px;
+    flex-shrink: 0;
+}
+
+.emoji-overlay-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.emoji-overlay-close {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    background: var(--surface);
+    color: var(--text-primary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    font-family: var(--font-family);
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+}
+
+.emoji-overlay-close:hover {
+    background: var(--surface-hover);
+    border-color: var(--danger);
+}
+
+.emoji-overlay-close .btn-icon {
+    font-size: 1.3rem;
+}
+
+.emoji-overlay-close .dwell-fill {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 4px;
+    background: var(--danger);
+    transition: width linear;
+    width: 0%;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.emoji-overlay-close.dwelling {
+    border-color: var(--danger);
+    box-shadow: 0 4px 16px rgba(255, 107, 107, 0.3);
+}
+
+.emoji-overlay-close.dwelling .dwell-fill {
+    width: 100%;
+}
+
+.emoji-overlay-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+    flex: 1;
+    align-content: start;
+    padding: 8px 0;
+}
+
+.emoji-overlay-grid .need-btn {
+    width: 100%;
+    min-width: 0;
+    min-height: 80px;
+    padding: 12px 8px;
+    font-size: 2.4rem;
+    gap: 6px;
+    border-radius: var(--radius-lg);
+    border-width: 2px;
+}
+
+.emoji-overlay-grid .need-btn .need-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+/* =============================================================
    Responsive Design — adapt to any screen size
    ============================================================= */
 
@@ -1137,6 +1248,15 @@ select:focus {
 
 /* --- Large tablets / small laptops (≤ 1200px) --- */
 @media (max-width: 1200px) {
+    /* Hide inline quick-needs on tablet; show emoji toggle button */
+    .quick-needs {
+        display: none;
+    }
+
+    .emoji-toggle-btn {
+        display: flex;
+    }
+
     .app-container {
         padding: 12px 14px;
         gap: 10px;
@@ -1462,53 +1582,19 @@ select:focus {
         gap: 12px;
     }
 
-    .quick-needs {
-        display: grid;
-        grid-template-columns: repeat(9, minmax(0, 1fr));
-        grid-auto-rows: minmax(0, 1fr);
-        gap: 6px;
-        padding: 12px;
-        align-content: stretch;
-    }
-
-    .need-btn {
-        width: 100%;
-        min-width: 0;
-        min-height: 54px;
-        padding: 6px 4px;
-        font-size: 1.1rem;
-    }
-
-    .need-btn .need-label {
-        font-size: 0.54rem;
-        line-height: 1.05;
-    }
-
     .top-bar-actions {
-        flex-direction: column;
-        width: 88px;
-        padding: 8px;
-        justify-content: space-between;
+        flex-direction: row;
+        flex-wrap: wrap;
+        flex: 1;
+        padding: 8px 12px;
+        justify-content: center;
+        gap: 8px;
     }
 
     .top-bar-actions .action-btn-large {
-        width: 100%;
         min-width: 0;
-        padding: 0;
-        gap: 0;
-        aspect-ratio: 1;
-        font-size: 0;
-        display: grid;
-        place-items: center;
-    }
-
-    .top-bar-actions .action-btn-large .btn-icon {
-        font-size: 1.65rem;
-        line-height: 1;
-    }
-
-    .top-bar-actions .action-btn-large span:last-child {
-        display: none;
+        flex: 1 1 auto;
+        padding: 10px 16px;
     }
 
     .text-display-row {

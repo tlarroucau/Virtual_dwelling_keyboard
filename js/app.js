@@ -23,6 +23,12 @@
     const settingsPanel = document.getElementById('settings-panel');
     const settingsOverlay = document.getElementById('settings-overlay');
 
+    // Emoji overlay
+    const emojiToggleBtn = document.getElementById('emoji-toggle-btn');
+    const emojiOverlay = document.getElementById('emoji-overlay');
+    const emojiOverlayClose = document.getElementById('emoji-overlay-close');
+    const emojiOverlayGrid = document.getElementById('emoji-overlay-grid');
+
     // Settings controls
     const dwellTimeSlider = document.getElementById('dwell-time-slider');
     const dwellTimeValue = document.getElementById('dwell-time-value');
@@ -77,6 +83,7 @@
         setupSettingsEvents();
         setupActionButtons();
         setupQuickNeeds();
+        setupEmojiOverlay();
 
         // Arrow navigation
         setupArrowNavigation();
@@ -472,7 +479,7 @@
 
     // --- Quick Needs ---
     function setupQuickNeeds() {
-        const needBtns = document.querySelectorAll('.need-btn');
+        const needBtns = document.querySelectorAll('#quick-needs .need-btn');
         needBtns.forEach((btn) => {
             const phrase = btn.getAttribute('data-phrase');
             const action = () => {
@@ -488,6 +495,54 @@
             };
             attachDwellToActionBtn(btn, action);
         });
+    }
+
+    // --- Emoji Overlay (tablet mode) ---
+    function setupEmojiOverlay() {
+        if (!emojiToggleBtn || !emojiOverlay || !emojiOverlayGrid) return;
+
+        // Wire emoji toggle button with dwell
+        attachDwellToActionBtn(emojiToggleBtn, openEmojiOverlay);
+
+        // Wire close button with dwell
+        attachDwellToActionBtn(emojiOverlayClose, closeEmojiOverlay);
+
+        // Populate the overlay grid with cloned need buttons
+        populateEmojiOverlay();
+    }
+
+    function populateEmojiOverlay() {
+        emojiOverlayGrid.innerHTML = '';
+        const needBtns = document.querySelectorAll('#quick-needs .need-btn');
+
+        needBtns.forEach((srcBtn) => {
+            const phrase = srcBtn.getAttribute('data-phrase');
+            const clone = srcBtn.cloneNode(true);
+            // Remove any existing dwell-fill from clone (will be re-added by attachDwellToActionBtn)
+            const existingFill = clone.querySelector('.dwell-fill');
+            if (existingFill) existingFill.remove();
+
+            const action = () => {
+                typedText += phrase + ' ';
+                currentWord = '';
+                updateDisplay();
+                updatePredictions();
+
+                // Flash
+                clone.classList.add('activated');
+                setTimeout(() => clone.classList.remove('activated'), 200);
+            };
+            attachDwellToActionBtn(clone, action);
+            emojiOverlayGrid.appendChild(clone);
+        });
+    }
+
+    function openEmojiOverlay() {
+        emojiOverlay.classList.add('open');
+    }
+
+    function closeEmojiOverlay() {
+        emojiOverlay.classList.remove('open');
     }
 
     // --- Speech Synthesis (ElevenLabs API) ---
@@ -722,8 +777,21 @@
     function buildNavGrid() {
         navGrid = [];
 
+        // If emoji overlay is open, only navigate its buttons
+        if (emojiOverlay && emojiOverlay.classList.contains('open')) {
+            navGrid.push(...groupElementsByVisualRows(
+                Array.from(emojiOverlayGrid.querySelectorAll('.need-btn')),
+                'emoji-overlay'
+            ));
+            navGrid.push(...groupElementsByVisualRows(
+                [emojiOverlayClose],
+                'emoji-overlay-close'
+            ));
+            return;
+        }
+
         navGrid.push(...groupElementsByVisualRows(
-            Array.from(document.querySelectorAll('.quick-needs .need-btn')),
+            Array.from(document.querySelectorAll('#quick-needs .need-btn')),
             'needs'
         ));
         navGrid.push(...groupElementsByVisualRows(
@@ -888,8 +956,12 @@
      */
     function setupArrowNavigation() {
         document.addEventListener('keydown', (e) => {
-            // Escape always closes settings
+            // Escape closes overlays
             if (e.key === 'Escape') {
+                if (emojiOverlay && emojiOverlay.classList.contains('open')) {
+                    closeEmojiOverlay();
+                    return;
+                }
                 closeSettings();
                 return;
             }

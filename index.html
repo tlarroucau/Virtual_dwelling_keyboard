@@ -168,6 +168,9 @@
                 <button class="need-btn" data-phrase="Llama a Pollita" aria-label="Pollita">👩 <span class="need-label">Pollita</span></button>
             </div>
             <div class="top-bar-actions">
+                <button id="emoji-toggle-btn" class="action-btn action-btn-large emoji-toggle-btn" aria-label="Abrir panel de emojis">
+                    <span class="btn-icon">😀</span> <span>Emojis</span>
+                </button>
                 <button id="games-btn" class="action-btn action-btn-large" aria-label="Abrir juegos" onclick="window.location.href='games.html'">
                     <span class="btn-icon">🎮</span> <span>Juegos</span>
                 </button>
@@ -211,6 +214,19 @@
                 <!-- Keys rendered by JS -->
             </div>
         </section>
+
+        <!-- Fullscreen emoji overlay (tablet mode) -->
+        <div id="emoji-overlay" class="emoji-overlay" aria-label="Panel de emojis" role="dialog" aria-modal="true">
+            <div class="emoji-overlay-header">
+                <h2 class="emoji-overlay-title">Frases rápidas</h2>
+                <button id="emoji-overlay-close" class="emoji-overlay-close" aria-label="Cerrar panel de emojis">
+                    <span class="btn-icon">✕</span> <span>Cerrar</span>
+                </button>
+            </div>
+            <div id="emoji-overlay-grid" class="emoji-overlay-grid">
+                <!-- Populated dynamically from quick-needs -->
+            </div>
+        </div>
 
         <!-- Dwell indicator (global, follows cursor when needed) -->
         <div id="dwell-indicator" class="dwell-indicator" aria-hidden="true">
