@@ -1246,15 +1246,22 @@ select:focus {
     }
 }
 
-/* --- Large tablets / small laptops (≤ 1200px) --- */
-@media (max-width: 1200px) {
+/* --- Tablets / small laptops (≤ 1400px) --- */
+@media (max-width: 1400px) {
     /* Hide inline quick-needs on tablet; show emoji toggle button */
     .quick-needs {
-        display: none;
+        display: none !important;
     }
 
     .emoji-toggle-btn {
-        display: flex;
+        display: flex !important;
+    }
+
+    .top-bar-actions {
+        flex-direction: row;
+        flex-wrap: wrap;
+        flex: 1;
+        justify-content: center;
     }
 
     .app-container {
