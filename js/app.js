@@ -37,6 +37,7 @@
     const keySizeSelect = document.getElementById('key-size-select');
     const fontBoostSelect = document.getElementById('font-boost-select');
     const emojiSizeSelect = document.getElementById('emoji-size-select');
+    const emojiFontBoostSelect = document.getElementById('emoji-font-boost-select');
     const themeSelect = document.getElementById('theme-select');
     const soundToggle = document.getElementById('sound-toggle');
     const predictionToggle = document.getElementById('prediction-toggle');
@@ -83,6 +84,7 @@
         setupSettingsEvents();
         setupActionButtons();
         setupQuickNeeds();
+        setupBottomControls();
         setupEmojiOverlay();
 
         // Arrow navigation
@@ -97,6 +99,7 @@
         applyKeySize(keySizeSelect.value);
         applyFontBoost(fontBoostSelect.value);
         applyEmojiSize(emojiSizeSelect.value);
+        applyEmojiFontBoost(emojiFontBoostSelect.value);
 
         // Load available voices for speech
         loadVoices();
@@ -313,6 +316,12 @@
             saveSettings();
         });
 
+        // Emoji font boost
+        emojiFontBoostSelect.addEventListener('change', () => {
+            applyEmojiFontBoost(emojiFontBoostSelect.value);
+            saveSettings();
+        });
+
         // Theme
         themeSelect.addEventListener('change', () => {
             applyTheme(themeSelect.value);
@@ -395,6 +404,10 @@
 
     function applyEmojiSize(size) {
         document.body.setAttribute('data-emoji-size', size);
+    }
+
+    function applyEmojiFontBoost(boost) {
+        document.body.setAttribute('data-emoji-font-boost', boost);
     }
 
     function updateNavigationSettingsState() {
@@ -492,6 +505,29 @@
                 // Flash
                 btn.classList.add('activated');
                 setTimeout(() => btn.classList.remove('activated'), 200);
+
+                // Auto-speak the phrase
+                speakPhrase(phrase, isUrgentPhrase(phrase));
+            };
+            attachDwellToActionBtn(btn, action);
+        });
+    }
+
+    // --- Bottom Controls (Sí/No, +/-, SOS, arrows) ---
+    function setupBottomControls() {
+        const bottomBtns = document.querySelectorAll('#bottom-controls .need-btn');
+        bottomBtns.forEach((btn) => {
+            const phrase = btn.getAttribute('data-phrase');
+            const action = () => {
+                typedText += phrase + ' ';
+                currentWord = '';
+                updateDisplay();
+                updatePredictions();
+
+                btn.classList.add('activated');
+                setTimeout(() => btn.classList.remove('activated'), 200);
+
+                speakPhrase(phrase, isUrgentPhrase(phrase));
             };
             attachDwellToActionBtn(btn, action);
         });
@@ -518,7 +554,6 @@
         needBtns.forEach((srcBtn) => {
             const phrase = srcBtn.getAttribute('data-phrase');
             const clone = srcBtn.cloneNode(true);
-            // Remove any existing dwell-fill from clone (will be re-added by attachDwellToActionBtn)
             const existingFill = clone.querySelector('.dwell-fill');
             if (existingFill) existingFill.remove();
 
@@ -528,13 +563,41 @@
                 updateDisplay();
                 updatePredictions();
 
-                // Flash
                 clone.classList.add('activated');
                 setTimeout(() => clone.classList.remove('activated'), 200);
+
+                speakPhrase(phrase, isUrgentPhrase(phrase));
             };
             attachDwellToActionBtn(clone, action);
             emojiOverlayGrid.appendChild(clone);
         });
+
+        // Populate bottom controls section separately
+        const controlsGrid = document.getElementById('emoji-overlay-controls');
+        if (controlsGrid) {
+            controlsGrid.innerHTML = '';
+            const bottomBtns = document.querySelectorAll('#bottom-controls .need-btn');
+            bottomBtns.forEach((srcBtn) => {
+                const phrase = srcBtn.getAttribute('data-phrase');
+                const clone = srcBtn.cloneNode(true);
+                const existingFill = clone.querySelector('.dwell-fill');
+                if (existingFill) existingFill.remove();
+
+                const action = () => {
+                    typedText += phrase + ' ';
+                    currentWord = '';
+                    updateDisplay();
+                    updatePredictions();
+
+                    clone.classList.add('activated');
+                    setTimeout(() => clone.classList.remove('activated'), 200);
+
+                    speakPhrase(phrase, isUrgentPhrase(phrase));
+                };
+                attachDwellToActionBtn(clone, action);
+                controlsGrid.appendChild(clone);
+            });
+        }
     }
 
     function openEmojiOverlay() {
@@ -548,6 +611,21 @@
     // --- Speech Synthesis (ElevenLabs API) ---
     let currentAudio = null;
 
+    /** Phrases that should be spoken at maximum volume */
+    const URGENT_PHRASES = [
+        'Necesito ayuda',
+        'Llama al doctor',
+        'Tengo dolor',
+    ];
+
+    /**
+     * Check if a phrase is urgent (should be loud).
+     */
+    function isUrgentPhrase(phrase) {
+        const lower = phrase.trim().toLowerCase();
+        return URGENT_PHRASES.some(u => lower.includes(u.toLowerCase()));
+    }
+
     function loadVoices() {
         // Speech rate slider
         speechRateSlider.addEventListener('input', () => {
@@ -559,18 +637,17 @@
         elevenlabsVoiceInput.addEventListener('change', () => saveSettings());
     }
 
-    async function speakText() {
-        if (!typedText.trim()) {
-            showToast('No hay texto para hablar');
-            return;
-        }
+    /**
+     * Speak a specific phrase via ElevenLabs. If urgent, plays at full volume.
+     */
+    async function speakPhrase(phrase, urgent) {
+        if (!phrase || !phrase.trim()) return;
 
-        // If currently playing, stop
+        // Stop any currently playing audio
         if (currentAudio) {
             currentAudio.pause();
             currentAudio = null;
             speakBtn.classList.remove('speaking');
-            return;
         }
 
         const apiKey = elevenlabsKeyInput.value.trim();
@@ -582,7 +659,6 @@
         }
 
         speakBtn.classList.add('speaking');
-        showToast('Generando voz...');
 
         try {
             const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
@@ -593,10 +669,10 @@
                     'xi-api-key': apiKey,
                 },
                 body: JSON.stringify({
-                    text: typedText.trim(),
+                    text: phrase.trim(),
                     model_id: 'eleven_multilingual_v2',
                     voice_settings: {
-                        stability: 0.5,
+                        stability: urgent ? 0.7 : 0.5,
                         similarity_boost: 0.75,
                         speed: parseFloat(speechRateSlider.value),
                     }
@@ -611,6 +687,7 @@
             const audioBlob = await response.blob();
             const audioUrl = URL.createObjectURL(audioBlob);
             currentAudio = new Audio(audioUrl);
+            currentAudio.volume = urgent ? 1.0 : 0.7;
 
             currentAudio.onended = () => {
                 speakBtn.classList.remove('speaking');
@@ -631,6 +708,23 @@
             console.error('ElevenLabs error:', e);
             showToast('Error al conectar con ElevenLabs');
         }
+    }
+
+    async function speakText() {
+        if (!typedText.trim()) {
+            showToast('No hay texto para hablar');
+            return;
+        }
+
+        // If currently playing, stop
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio = null;
+            speakBtn.classList.remove('speaking');
+            return;
+        }
+
+        await speakPhrase(typedText, isUrgentPhrase(typedText));
     }
 
     // --- Toast notification ---
@@ -663,6 +757,7 @@
             keySize: keySizeSelect.value,
             fontBoost: fontBoostSelect.value,
             emojiSize: emojiSizeSelect.value,
+            emojiFontBoost: emojiFontBoostSelect.value,
             theme: themeSelect.value,
             soundEnabled: soundToggle.checked,
             predictionEnabled: predictionToggle.checked,
@@ -696,6 +791,7 @@
             if (s.keySize) keySizeSelect.value = s.keySize;
             if (s.fontBoost) fontBoostSelect.value = s.fontBoost;
             if (s.emojiSize) emojiSizeSelect.value = s.emojiSize;
+            if (s.emojiFontBoost) emojiFontBoostSelect.value = s.emojiFontBoost;
             if (s.theme) themeSelect.value = s.theme;
             if (s.soundEnabled != null) soundToggle.checked = s.soundEnabled;
             if (s.predictionEnabled != null) predictionToggle.checked = s.predictionEnabled;
@@ -783,6 +879,13 @@
                 Array.from(emojiOverlayGrid.querySelectorAll('.need-btn')),
                 'emoji-overlay'
             ));
+            const overlayControls = document.getElementById('emoji-overlay-controls');
+            if (overlayControls) {
+                navGrid.push(...groupElementsByVisualRows(
+                    Array.from(overlayControls.querySelectorAll('.need-btn')),
+                    'emoji-overlay-controls'
+                ));
+            }
             navGrid.push(...groupElementsByVisualRows(
                 [emojiOverlayClose],
                 'emoji-overlay-close'
@@ -817,6 +920,11 @@
                 navGrid.push({ section: 'keyboard', elements: keys });
             }
         });
+
+        navGrid.push(...groupElementsByVisualRows(
+            Array.from(document.querySelectorAll('#bottom-controls .need-btn')),
+            'bottom-controls'
+        ));
     }
 
     function isArrowFocusDwellActive() {

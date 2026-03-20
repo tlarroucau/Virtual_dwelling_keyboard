@@ -58,6 +58,14 @@
                 </select>
             </div>
             <div class="setting-group">
+                <label for="emoji-font-boost-select">Tamaño de letras en emojis</label>
+                <select id="emoji-font-boost-select">
+                    <option value="normal" selected>Normal</option>
+                    <option value="large">Grande</option>
+                    <option value="xlarge">Extra grande</option>
+                </select>
+            </div>
+            <div class="setting-group">
                 <label for="theme-select">Tema</label>
                 <select id="theme-select">
                     <option value="dark" selected>Oscuro</option>
@@ -130,8 +138,6 @@
         <!-- Top bar -->
         <header class="top-bar">
             <div class="quick-needs" id="quick-needs" aria-label="Frases rápidas de necesidades">
-                <button class="need-btn" data-phrase="Necesito ir al baño" aria-label="Baño">🚽 <span class="need-label">Baño</span></button>
-                <button class="need-btn" data-phrase="Tengo hambre, quiero comer" aria-label="Comida">🍽️ <span class="need-label">Comida</span></button>
                 <button class="need-btn" data-phrase="Tengo sed, quiero beber agua" aria-label="Agua">💧 <span class="need-label">Agua</span></button>
                 <button class="need-btn" data-phrase="Tengo dolor" aria-label="Dolor">🤕 <span class="need-label">Dolor</span></button>
                 <button class="need-btn" data-phrase="Me duele " aria-label="Me duele">😣 <span class="need-label">Me duele</span></button>
@@ -141,23 +147,24 @@
                 <button class="need-btn" data-phrase="Tengo calor" aria-label="Calor">🥵 <span class="need-label">Calor</span></button>
                 <button class="need-btn" data-phrase="Quiero dormir" aria-label="Dormir">😴 <span class="need-label">Dormir</span></button>
                 <button class="need-btn" data-phrase="Llama al doctor" aria-label="Doctor">👨‍⚕️ <span class="need-label">Doctor</span></button>
-                <button class="need-btn" data-phrase="Necesito mi medicina" aria-label="Medicina">💊 <span class="need-label">Medicina</span></button>
-                <button class="need-btn" data-phrase="Sí" aria-label="Sí">✅ <span class="need-label">Sí</span></button>
-                <button class="need-btn" data-phrase="No" aria-label="No">❌ <span class="need-label">No</span></button>
                 <button class="need-btn" data-phrase="Gracias" aria-label="Gracias">🙏 <span class="need-label">Gracias</span></button>
                 <button class="need-btn" data-phrase="Te quiero" aria-label="Te quiero">❤️ <span class="need-label">Te quiero</span></button>
-                <button class="need-btn" data-phrase="la cabeza" aria-label="Cabeza">🧠 <span class="need-label">Cabeza</span></button>
-                <button class="need-btn" data-phrase="los ojos" aria-label="Ojos">👁️ <span class="need-label">Ojos</span></button>
-                <button class="need-btn" data-phrase="el oído" aria-label="Oído">👂 <span class="need-label">Oído</span></button>
-                <button class="need-btn" data-phrase="la garganta" aria-label="Garganta">🗣️ <span class="need-label">Garganta</span></button>
-                <button class="need-btn" data-phrase="el pecho" aria-label="Pecho">🫁 <span class="need-label">Pecho</span></button>
-                <button class="need-btn" data-phrase="el estómago" aria-label="Estómago">🤢 <span class="need-label">Estómago</span></button>
-                <button class="need-btn" data-phrase="la espalda" aria-label="Espalda">🔙 <span class="need-label">Espalda</span></button>
-                <button class="need-btn" data-phrase="el brazo" aria-label="Brazo">💪 <span class="need-label">Brazo</span></button>
-                <button class="need-btn" data-phrase="la mano" aria-label="Mano">✋ <span class="need-label">Mano</span></button>
-                <button class="need-btn" data-phrase="la pierna" aria-label="Pierna">🦵 <span class="need-label">Pierna</span></button>
-                <button class="need-btn" data-phrase="el pie" aria-label="Pie">🦶 <span class="need-label">Pie</span></button>
-                <button class="need-btn" data-phrase="los dientes" aria-label="Dientes">🦷 <span class="need-label">Dientes</span></button>
+                <button class="need-btn" data-phrase="Necesito cambio de posición" aria-label="Cambio de posición">🔄 <span class="need-label">Posición</span></button>
+                <button class="need-btn" data-phrase="Quiero ver televisión" aria-label="TV">📺 <span class="need-label">TV</span></button>
+                <!-- Body parts — all in one line -->
+                <button class="need-btn need-btn-body" data-phrase="la cabeza" aria-label="Cabeza">🧠 <span class="need-label">Cabeza</span></button>
+                <button class="need-btn need-btn-body" data-phrase="los ojos" aria-label="Ojos">👁️ <span class="need-label">Ojos</span></button>
+                <button class="need-btn need-btn-body" data-phrase="el oído" aria-label="Oído">👂 <span class="need-label">Oído</span></button>
+                <button class="need-btn need-btn-body" data-phrase="la garganta" aria-label="Garganta">🗣️ <span class="need-label">Garganta</span></button>
+                <button class="need-btn need-btn-body" data-phrase="el pecho" aria-label="Pecho">🫁 <span class="need-label">Pecho</span></button>
+                <button class="need-btn need-btn-body" data-phrase="el estómago" aria-label="Estómago">🤢 <span class="need-label">Estómago</span></button>
+                <button class="need-btn need-btn-body" data-phrase="la espalda" aria-label="Espalda">🔙 <span class="need-label">Espalda</span></button>
+                <button class="need-btn need-btn-body" data-phrase="el brazo" aria-label="Brazo">💪 <span class="need-label">Brazo</span></button>
+                <button class="need-btn need-btn-body" data-phrase="la mano" aria-label="Mano">✋ <span class="need-label">Mano</span></button>
+                <button class="need-btn need-btn-body" data-phrase="la pierna" aria-label="Pierna">🦵 <span class="need-label">Pierna</span></button>
+                <button class="need-btn need-btn-body" data-phrase="el pie" aria-label="Pie">🦶 <span class="need-label">Pie</span></button>
+                <button class="need-btn need-btn-body" data-phrase="los dientes" aria-label="Dientes">🦷 <span class="need-label">Dientes</span></button>
+                <!-- Other needs -->
                 <button class="need-btn" data-phrase="Necesito un pañal" aria-label="Pañal">👶 <span class="need-label">Pañal</span></button>
                 <button class="need-btn" data-phrase="Necesito la silla" aria-label="Silla">🪑 <span class="need-label">Silla</span></button>
                 <button class="need-btn" data-phrase="Necesito la mascarilla" aria-label="Mascarilla">😷 <span class="need-label">Mascarilla</span></button>
@@ -215,6 +222,23 @@
             </div>
         </section>
 
+        <!-- Bottom controls bar -->
+        <section class="bottom-controls" id="bottom-controls" aria-label="Controles rápidos">
+            <div class="bottom-controls-left" id="bottom-controls-left">
+                <button class="need-btn bottom-ctrl-btn" data-phrase="Izquierda" aria-label="Izquierda">⬅️ <span class="need-label">Izquierda</span></button>
+                <button class="need-btn bottom-ctrl-btn" data-phrase="Derecha" aria-label="Derecha">➡️ <span class="need-label">Derecha</span></button>
+                <button class="need-btn bottom-ctrl-btn" data-phrase="Más" aria-label="Más">➕ <span class="need-label">Más</span></button>
+                <button class="need-btn bottom-ctrl-btn" data-phrase="Menos" aria-label="Menos">➖ <span class="need-label">Menos</span></button>
+            </div>
+            <div class="bottom-controls-center" id="bottom-controls-center">
+                <button class="need-btn bottom-ctrl-btn bottom-ctrl-sos" data-phrase="Necesito ayuda urgente" aria-label="SOS">🆘 <span class="need-label">SOS</span></button>
+            </div>
+            <div class="bottom-controls-right" id="bottom-controls-right">
+                <button class="need-btn bottom-ctrl-btn bottom-ctrl-yes" data-phrase="Sí" aria-label="Sí">✅ <span class="need-label">Sí</span></button>
+                <button class="need-btn bottom-ctrl-btn bottom-ctrl-no" data-phrase="No" aria-label="No">❌ <span class="need-label">No</span></button>
+            </div>
+        </section>
+
         <!-- Fullscreen emoji overlay (tablet mode) -->
         <div id="emoji-overlay" class="emoji-overlay" aria-label="Panel de emojis" role="dialog" aria-modal="true">
             <div class="emoji-overlay-header">
@@ -225,6 +249,10 @@
             </div>
             <div id="emoji-overlay-grid" class="emoji-overlay-grid">
                 <!-- Populated dynamically from quick-needs -->
+            </div>
+            <div class="emoji-overlay-divider"></div>
+            <div id="emoji-overlay-controls" class="emoji-overlay-grid emoji-overlay-controls-grid">
+                <!-- Populated dynamically from bottom-controls -->
             </div>
         </div>
 
