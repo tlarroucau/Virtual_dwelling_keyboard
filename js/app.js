@@ -1025,6 +1025,120 @@
     }
 
     /**
+     * Sync navRow/navCol to match a specific target element in navGrid.
+     * @param {HTMLElement} targetEl
+     * @returns {boolean} true if found
+     */
+    function syncNavPositionWithElement(targetEl) {
+        if (!targetEl || !targetEl.isConnected) return false;
+
+        for (let rowIndex = 0; rowIndex < navGrid.length; rowIndex++) {
+            const colIndex = navGrid[rowIndex].elements.indexOf(targetEl);
+            if (colIndex !== -1) {
+                navRow = rowIndex;
+                navCol = colIndex;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Collect all unique navigable elements from the navGrid.
+     */
+    function getNavCandidates() {
+        const seen = new Set();
+        const candidates = [];
+
+        navGrid.forEach((row) => {
+            row.elements.forEach((el) => {
+                if (!seen.has(el)) {
+                    seen.add(el);
+                    candidates.push(el);
+                }
+            });
+        });
+
+        return candidates;
+    }
+
+    function getElementCenter(rect) {
+        return {
+            x: rect.left + (rect.width / 2),
+            y: rect.top + (rect.height / 2),
+        };
+    }
+
+    function rangesOverlap(startA, endA, startB, endB) {
+        return startA <= endB && startB <= endA;
+    }
+
+    /**
+     * Find the nearest navigable element in the given arrow direction
+     * using visual (bounding-rect) positions instead of grid indices.
+     */
+    function findDirectionalTarget(currentEl, direction) {
+        if (!currentEl) return null;
+
+        const currentRect = currentEl.getBoundingClientRect();
+        const currentCenter = getElementCenter(currentRect);
+        let bestCandidate = null;
+        let bestScore = Infinity;
+
+        getNavCandidates().forEach((candidate) => {
+            if (candidate === currentEl || !isElementVisible(candidate)) return;
+
+            const rect = candidate.getBoundingClientRect();
+            const center = getElementCenter(rect);
+            let primaryDistance = 0;
+            let secondaryDistance = 0;
+            let overlapsAxis = false;
+
+            switch (direction) {
+                case 'ArrowRight':
+                    primaryDistance = center.x - currentCenter.x;
+                    if (primaryDistance <= 0) return;
+                    secondaryDistance = Math.abs(center.y - currentCenter.y);
+                    overlapsAxis = rangesOverlap(currentRect.top, currentRect.bottom, rect.top, rect.bottom);
+                    break;
+
+                case 'ArrowLeft':
+                    primaryDistance = currentCenter.x - center.x;
+                    if (primaryDistance <= 0) return;
+                    secondaryDistance = Math.abs(center.y - currentCenter.y);
+                    overlapsAxis = rangesOverlap(currentRect.top, currentRect.bottom, rect.top, rect.bottom);
+                    break;
+
+                case 'ArrowDown':
+                    primaryDistance = center.y - currentCenter.y;
+                    if (primaryDistance <= 0) return;
+                    secondaryDistance = Math.abs(center.x - currentCenter.x);
+                    overlapsAxis = rangesOverlap(currentRect.left, currentRect.right, rect.left, rect.right);
+                    break;
+
+                case 'ArrowUp':
+                    primaryDistance = currentCenter.y - center.y;
+                    if (primaryDistance <= 0) return;
+                    secondaryDistance = Math.abs(center.x - currentCenter.x);
+                    overlapsAxis = rangesOverlap(currentRect.left, currentRect.right, rect.left, rect.right);
+                    break;
+
+                default:
+                    return;
+            }
+
+            const score = primaryDistance + secondaryDistance * (overlapsAxis ? 0.25 : 2);
+            if (score < bestScore) {
+                bestScore = score;
+                bestCandidate = candidate;
+            }
+        });
+
+        return bestCandidate;
+    }
+
+    /**
      * Set focus highlight on the element at current navRow/navCol.
      */
     function applyNavFocus() {
@@ -1100,11 +1214,10 @@
                     buildNavGrid();
                     if (navGrid.length === 0) break;
                     syncNavPositionWithFocusedElement();
-                    navCol++;
-                    if (navGrid[navRow] && navCol >= navGrid[navRow].elements.length) {
-                        navCol = 0; // wrap
+                    const rightTarget = findDirectionalTarget(navFocusedEl, 'ArrowRight');
+                    if (rightTarget && syncNavPositionWithElement(rightTarget)) {
+                        applyNavFocus();
                     }
-                    applyNavFocus();
                     break;
 
                 case 'ArrowLeft':
@@ -1116,11 +1229,10 @@
                     buildNavGrid();
                     if (navGrid.length === 0) break;
                     syncNavPositionWithFocusedElement();
-                    navCol--;
-                    if (navCol < 0) {
-                        navCol = navGrid[navRow] ? navGrid[navRow].elements.length - 1 : 0;
+                    const leftTarget = findDirectionalTarget(navFocusedEl, 'ArrowLeft');
+                    if (leftTarget && syncNavPositionWithElement(leftTarget)) {
+                        applyNavFocus();
                     }
-                    applyNavFocus();
                     break;
 
                 case 'ArrowDown':
@@ -1132,15 +1244,10 @@
                     buildNavGrid();
                     if (navGrid.length === 0) break;
                     syncNavPositionWithFocusedElement();
-                    const previousDownRow = navRow;
-                    navRow++;
-                    if (navRow >= navGrid.length) navRow = 0; // wrap
-                    // Try to keep col proportional
-                    if (navGrid[navRow] && navGrid[previousDownRow]) {
-                        const ratio = navCol / (navGrid[previousDownRow].elements.length - 1 || 1);
-                        navCol = Math.round(ratio * (navGrid[navRow].elements.length - 1));
+                    const downTarget = findDirectionalTarget(navFocusedEl, 'ArrowDown');
+                    if (downTarget && syncNavPositionWithElement(downTarget)) {
+                        applyNavFocus();
                     }
-                    applyNavFocus();
                     break;
 
                 case 'ArrowUp':
@@ -1152,15 +1259,10 @@
                     buildNavGrid();
                     if (navGrid.length === 0) break;
                     syncNavPositionWithFocusedElement();
-                    const prevRow = navRow;
-                    navRow--;
-                    if (navRow < 0) navRow = navGrid.length - 1; // wrap
-                    // Keep col proportional
-                    if (navGrid[navRow] && navGrid[prevRow]) {
-                        const ratio = navCol / (navGrid[prevRow].elements.length - 1 || 1);
-                        navCol = Math.round(ratio * (navGrid[navRow].elements.length - 1));
+                    const upTarget = findDirectionalTarget(navFocusedEl, 'ArrowUp');
+                    if (upTarget && syncNavPositionWithElement(upTarget)) {
+                        applyNavFocus();
                     }
-                    applyNavFocus();
                     break;
 
                 case 'Enter':
