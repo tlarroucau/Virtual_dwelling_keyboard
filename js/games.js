@@ -326,9 +326,22 @@
             if (idx < 9) return { nr: Math.floor(idx / 3), nc: idx % 3 };
             return { nr: 3, nc: 0 }; // Borrar
         };
+        const controlAt = (index) => ([
+            document.getElementById('sudoku-new'),
+            document.getElementById('sudoku-check'),
+            document.getElementById('sudoku-hint'),
+            document.getElementById('sudoku-back-to-menu'),
+        ][index] || null);
 
         // Map a board row (0..8) to a numpad row (0..2).
         const boardRowToNumpadRow = (r) => Math.min(2, Math.floor(r / 3));
+        // Map the board's 9 columns to the 4 controls above it.
+        const boardColToControl = (c) => {
+            if (c <= 1) return 0; // Nuevo
+            if (c <= 4) return 1; // Verificar
+            if (c <= 6) return 2; // Pista
+            return 3;             // Menú
+        };
         // Map a numpad row (0..3) back to a representative board row.
         const numpadRowToBoardRow = (nr) => {
             if (nr === 0) return 1;
@@ -342,7 +355,9 @@
             const c = parseInt(startEl.dataset.col, 10);
             switch (direction) {
                 case 'ArrowLeft':  return cellAt(r, c - 1);
-                case 'ArrowUp':    return cellAt(r - 1, c);
+                case 'ArrowUp':
+                    if (r > 0) return cellAt(r - 1, c);
+                    return controlAt(boardColToControl(c));
                 case 'ArrowDown':  return cellAt(r + 1, c);
                 case 'ArrowRight':
                     if (c < 8) return cellAt(r, c + 1);
@@ -356,7 +371,9 @@
         if (np) {
             switch (direction) {
                 case 'ArrowRight': return numpadAt(np.nr, np.nc + 1);
-                case 'ArrowUp':    return numpadAt(np.nr - 1, np.nc);
+                case 'ArrowUp':
+                    if (np.nr > 0) return numpadAt(np.nr - 1, np.nc);
+                    return controlAt(Math.min(3, np.nc + 1));
                 case 'ArrowDown':  return numpadAt(np.nr + 1, np.nc);
                 case 'ArrowLeft':
                     if (np.nc > 0) return numpadAt(np.nr, np.nc - 1);
@@ -379,26 +396,43 @@
      * Forced-on regardless of the global arrowFocusDwellEnabled setting,
      * since the user has explicitly engaged the sudoku board.
      */
+    function isSudokuGridElement(el) {
+        return Boolean(el && (
+            el.classList.contains('sudoku-cell') ||
+            el.classList.contains('numpad-btn')
+        ));
+    }
+
+    function getSelectedSudokuCellEl() {
+        if (!selectedCell) return null;
+        const idx = selectedCell.row * 9 + selectedCell.col;
+        return sudokuBoardEl.children[idx] || null;
+    }
+
     function sudokuArrowNavigate(direction) {
         // Determine the element to navigate FROM.
         let startEl = null;
-        if (navFocusedEl && navFocusedEl.isConnected &&
-            (navFocusedEl.classList.contains('sudoku-cell') ||
-             navFocusedEl.classList.contains('numpad-btn'))) {
+        if (navFocusedEl && navFocusedEl.isConnected) {
             startEl = navFocusedEl;
         } else if (selectedCell) {
-            const idx = selectedCell.row * 9 + selectedCell.col;
-            startEl = sudokuBoardEl.children[idx] || null;
+            startEl = getSelectedSudokuCellEl();
         }
         if (!startEl) {
             startEl = sudokuBoardEl.querySelector('.sudoku-cell');
         }
-        if (!startEl) return;
+        if (!startEl) return false;
 
-        const target = resolveSudokuNavTarget(startEl, direction);
-        if (!target) return;
+        buildNavGrid();
 
+        const strictTarget = isSudokuGridElement(startEl)
+            ? resolveSudokuNavTarget(startEl, direction)
+            : null;
+        const target = strictTarget || findDirectionalTarget(startEl, direction);
+        if (!target) return false;
+
+        syncNavPositionWithElement(target);
         applySudokuArrowFocus(target);
+        return true;
     }
 
     /**
@@ -1084,8 +1118,11 @@
 
         // Wire back button
         attachDwell(document.getElementById('back-btn'), () => {
+            if (window.FullscreenHandoff) window.FullscreenHandoff.rememberIntent();
             window.location.href = 'index.html';
         });
+
+        if (window.FullscreenHandoff) window.FullscreenHandoff.init(attachDwell);
     }
 
     // Start

@@ -83,6 +83,7 @@
         // Wire up UI events
         setupSettingsEvents();
         setupActionButtons();
+        if (window.FullscreenHandoff) window.FullscreenHandoff.init(attachDwellToActionBtn);
         setupQuickNeeds();
         setupBottomControls();
         setupEmojiOverlay();
@@ -462,6 +463,7 @@
         };
 
         const gamesAction = () => {
+            if (window.FullscreenHandoff) window.FullscreenHandoff.rememberIntent();
             window.location.href = 'games.html';
         };
 
