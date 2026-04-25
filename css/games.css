@@ -325,10 +325,44 @@
     z-index: 3;
 }
 
+/* Pre-filled (immutable) clues — clearly distinct from user-entered numbers */
 .sudoku-cell.given {
-    color: var(--text-secondary);
+    background: var(--surface-hover);
+    color: var(--text-primary);
+    font-weight: 800;
+    /* Subtle diagonal pattern to reinforce the "locked" status */
+    background-image: repeating-linear-gradient(
+        135deg,
+        transparent 0,
+        transparent 6px,
+        rgba(255, 255, 255, 0.04) 6px,
+        rgba(255, 255, 255, 0.04) 7px
+    );
+}
+
+/* User-entered numbers — accent color so the player can tell what they've placed.
+   Higher specificity so it stays visible even when the cell is also .selected. */
+.sudoku-cell.user-value,
+.sudoku-cell.user-value.selected {
+    color: var(--accent-light);
     font-weight: 700;
-    cursor: default;
+}
+
+/* Givens — also keep their distinct look while selected */
+.sudoku-cell.given.selected {
+    color: var(--text-primary);
+    font-weight: 800;
+}
+
+/* Light theme: use a darker tint for the diagonal pattern */
+body.theme-light .sudoku-cell.given {
+    background-image: repeating-linear-gradient(
+        135deg,
+        transparent 0,
+        transparent 6px,
+        rgba(0, 0, 0, 0.05) 6px,
+        rgba(0, 0, 0, 0.05) 7px
+    );
 }
 
 .sudoku-cell.error {

@@ -259,6 +259,7 @@
                     cell.textContent = sudokuBoard[r][c];
                 } else {
                     cell.textContent = sudokuBoard[r][c] || '';
+                    if (sudokuBoard[r][c]) cell.classList.add('user-value');
                 }
 
                 // Add dwell fill
@@ -276,14 +277,182 @@
     }
 
     function selectSudokuCell(row, col) {
-        if (sudokuGiven[row][col]) return;
-
         // Remove previous selection
         sudokuBoardEl.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
 
         selectedCell = { row, col };
         const idx = row * 9 + col;
-        sudokuBoardEl.children[idx].classList.add('selected');
+        const cell = sudokuBoardEl.children[idx];
+        cell.classList.add('selected');
+
+        // Keep arrow-navigation state in sync so arrow keys move from this cell
+        // even when the user selected it via mouse/dwell rather than arrow nav.
+        syncArrowNavToSudokuCell(cell);
+    }
+
+    /**
+     * Resolve the next element to focus given a starting element and an arrow
+     * direction, using strict row/column logic across the board and numpad.
+     *
+     * Layout assumptions:
+     *  - Board: 9x9 grid of .sudoku-cell, indexed by data-row/data-col.
+     *  - Numpad: 3-column grid of .numpad-btn — buttons "1".."9" form 3 rows
+     *    of 3 (1,2,3 / 4,5,6 / 7,8,9), with the "Borrar" button on a 4th row
+     *    in column 0.
+     *
+     * Returns the next focusable element or null if no move is possible.
+     */
+    function resolveSudokuNavTarget(startEl, direction) {
+        if (!startEl) return null;
+
+        const cellAt = (r, c) => {
+            if (r < 0 || r > 8 || c < 0 || c > 8) return null;
+            return sudokuBoardEl.children[r * 9 + c] || null;
+        };
+        const numpadBtns = Array.from(sudokuNumpadEl.querySelectorAll('.numpad-btn'));
+        // Number buttons 1..9 in row-major order, then Borrar at row 3 col 0.
+        const numpadAt = (nr, nc) => {
+            if (nr >= 0 && nr <= 2 && nc >= 0 && nc <= 2) {
+                return numpadBtns[nr * 3 + nc] || null;
+            }
+            if (nr === 3 && nc === 0) {
+                return numpadBtns[9] || null; // Borrar
+            }
+            return null;
+        };
+        const numpadCoords = (el) => {
+            const idx = numpadBtns.indexOf(el);
+            if (idx < 0) return null;
+            if (idx < 9) return { nr: Math.floor(idx / 3), nc: idx % 3 };
+            return { nr: 3, nc: 0 }; // Borrar
+        };
+
+        // Map a board row (0..8) to a numpad row (0..2).
+        const boardRowToNumpadRow = (r) => Math.min(2, Math.floor(r / 3));
+        // Map a numpad row (0..3) back to a representative board row.
+        const numpadRowToBoardRow = (nr) => {
+            if (nr === 0) return 1;
+            if (nr === 1) return 4;
+            if (nr === 2) return 7;
+            return 8; // Borrar — bottom of board
+        };
+
+        if (startEl.classList.contains('sudoku-cell')) {
+            const r = parseInt(startEl.dataset.row, 10);
+            const c = parseInt(startEl.dataset.col, 10);
+            switch (direction) {
+                case 'ArrowLeft':  return cellAt(r, c - 1);
+                case 'ArrowUp':    return cellAt(r - 1, c);
+                case 'ArrowDown':  return cellAt(r + 1, c);
+                case 'ArrowRight':
+                    if (c < 8) return cellAt(r, c + 1);
+                    // Cross into numpad at column 0, row matching board row.
+                    return numpadAt(boardRowToNumpadRow(r), 0);
+            }
+            return null;
+        }
+
+        const np = numpadCoords(startEl);
+        if (np) {
+            switch (direction) {
+                case 'ArrowRight': return numpadAt(np.nr, np.nc + 1);
+                case 'ArrowUp':    return numpadAt(np.nr - 1, np.nc);
+                case 'ArrowDown':  return numpadAt(np.nr + 1, np.nc);
+                case 'ArrowLeft':
+                    if (np.nc > 0) return numpadAt(np.nr, np.nc - 1);
+                    // Cross back into board at column 8, row matching numpad row.
+                    return cellAt(numpadRowToBoardRow(np.nr), 8);
+            }
+            return null;
+        }
+
+        return null;
+    }
+
+    /**
+     * Arrow-key navigation while inside the Sudoku game. Uses strict row/col
+     * logic (resolveSudokuNavTarget) to move between board cells and numpad
+     * buttons, and starts a dwell on the focused element. The element is
+     * activated (cell selected, or numpad number placed) only after dwellTime,
+     * so users with eye-trackers can preview before committing.
+     *
+     * Forced-on regardless of the global arrowFocusDwellEnabled setting,
+     * since the user has explicitly engaged the sudoku board.
+     */
+    function sudokuArrowNavigate(direction) {
+        // Determine the element to navigate FROM.
+        let startEl = null;
+        if (navFocusedEl && navFocusedEl.isConnected &&
+            (navFocusedEl.classList.contains('sudoku-cell') ||
+             navFocusedEl.classList.contains('numpad-btn'))) {
+            startEl = navFocusedEl;
+        } else if (selectedCell) {
+            const idx = selectedCell.row * 9 + selectedCell.col;
+            startEl = sudokuBoardEl.children[idx] || null;
+        }
+        if (!startEl) {
+            startEl = sudokuBoardEl.querySelector('.sudoku-cell');
+        }
+        if (!startEl) return;
+
+        const target = resolveSudokuNavTarget(startEl, direction);
+        if (!target) return;
+
+        applySudokuArrowFocus(target);
+    }
+
+    /**
+     * Move arrow-focus highlight + dwell to the given element. Mirrors
+     * applyNavFocus() but forces the dwell on (regardless of the global
+     * arrowFocusDwellEnabled setting) and avoids clearing the .selected
+     * class on previously-selected cells (only .arrow-focused is cleared).
+     */
+    function applySudokuArrowFocus(el) {
+        cancelArrowFocusDwell();
+        document.querySelectorAll('.arrow-focused').forEach((node) => {
+            node.classList.remove('arrow-focused');
+            resetDwellVisual(node);
+        });
+
+        if (!el) return;
+
+        el.classList.add('arrow-focused');
+        el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        navFocusedEl = el;
+
+        // Forced dwell: after dwellTime, dispatch a synthetic pointerdown,
+        // which fires the element's normal handler (selectSudokuCell for
+        // board cells, placeNumber/eraseNumber for numpad buttons).
+        focusDwellEl = el;
+        startDwellVisual(el);
+        focusDwellTimer = setTimeout(() => {
+            if (focusDwellEl !== el || navFocusedEl !== el) return;
+            cancelArrowFocusDwell();
+            el.classList.remove('arrow-focused');
+            dispatchSyntheticPointerDown(el);
+            playSound();
+        }, dwellTime);
+    }
+
+    /**
+     * Sync the arrow-navigation system (navFocusedEl/navRow/navCol) so it
+     * tracks the currently-selected sudoku cell. This bridges the
+     * mouse/dwell selection and the arrow-key navigation systems.
+     */
+    function syncArrowNavToSudokuCell(cell) {
+        if (!cell) return;
+        // Clear any other arrow-focus highlight without touching .selected
+        document.querySelectorAll('.arrow-focused').forEach((el) => {
+            if (el !== cell) {
+                el.classList.remove('arrow-focused');
+                resetDwellVisual(el);
+            }
+        });
+        cancelArrowFocusDwell();
+        navFocusedEl = cell;
+        // Best-effort sync of nav grid coords (used by Tab navigation)
+        buildNavGrid();
+        syncNavPositionWithElement(cell);
     }
 
     function placeNumber(num) {
@@ -300,6 +469,9 @@
         const cell = sudokuBoardEl.children[idx];
         cell.textContent = num || '';
         cell.classList.remove('error');
+        // Mark/unmark as user-entered so it's visually distinct from givens
+        if (num) cell.classList.add('user-value');
+        else cell.classList.remove('user-value');
 
         // Re-add dwell fill
         if (!cell.querySelector('.dwell-fill')) {
@@ -315,12 +487,25 @@
     }
 
     function eraseNumber() {
-        if (!selectedCell) return;
+        if (!selectedCell) {
+            sudokuMessage.textContent = 'Selecciona una celda primero';
+            sudokuMessage.className = 'game-message error';
+            return;
+        }
+        const { row, col } = selectedCell;
+        if (sudokuGiven[row][col]) {
+            sudokuMessage.textContent = 'Esta celda es una pista del puzzle y no se puede borrar';
+            sudokuMessage.className = 'game-message error';
+            return;
+        }
         placeNumber(0);
-        const idx = selectedCell.row * 9 + selectedCell.col;
-        sudokuBoardEl.children[idx].textContent = '';
-        // Re-add dwell fill
+        sudokuMessage.textContent = '';
+        sudokuMessage.className = 'game-message';
+        const idx = row * 9 + col;
         const cell = sudokuBoardEl.children[idx];
+        cell.textContent = '';
+        cell.classList.remove('user-value');
+        // Re-add dwell fill
         if (!cell.querySelector('.dwell-fill')) {
             const fill = document.createElement('div');
             fill.className = 'dwell-fill';
@@ -385,6 +570,7 @@
         const cell = sudokuBoardEl.children[idx];
         cell.textContent = sudokuSolution[r][c];
         cell.classList.remove('error');
+        cell.classList.add('user-value');
         cell.classList.add('hint-flash');
         setTimeout(() => cell.classList.remove('hint-flash'), 700);
 
@@ -710,10 +896,35 @@
 
     function setupArrowNavigation() {
         document.addEventListener('keydown', (e) => {
-            if (!arrowNavEnabled) return;
-
             const tag = e.target.tagName;
             if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+
+            const sudokuVisible = sudokuArea && sudokuArea.style.display !== 'none';
+
+            // Sudoku-specific arrow handling: when the sudoku game is visible,
+            // arrow keys navigate (with dwell) across board cells and the
+            // numpad, regardless of the global arrowNavEnabled setting.
+            if (sudokuVisible && ARROW_KEYS.has(e.key)) {
+                e.preventDefault();
+                sudokuArrowNavigate(e.key);
+                return;
+            }
+
+            // Sudoku: typing 1–9 fills the selected cell, Backspace/Delete erases.
+            if (sudokuVisible && selectedCell && /^[1-9]$/.test(e.key)) {
+                e.preventDefault();
+                placeNumber(parseInt(e.key, 10));
+                playSound();
+                return;
+            }
+            if (sudokuVisible && selectedCell && (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0')) {
+                e.preventDefault();
+                eraseNumber();
+                playSound();
+                return;
+            }
+
+            if (!arrowNavEnabled) return;
 
             if (ARROW_KEYS.has(e.key) && arrowNavSingleStepEnabled) {
                 if (e.repeat || pressedArrowKeys.has(e.key)) {
