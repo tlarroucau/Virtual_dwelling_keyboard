@@ -6,3 +6,6 @@
 .github/agents/reviewer.agent.md
 .github/skills/youtube-transcript/skill.md
 .github/skills/youtube-transcript/scripts/fetch.py
+
+# Local editor settings
+.vscode/
