@@ -1752,7 +1752,7 @@ select:focus {
 
     .text-display-row {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) repeat(3, minmax(112px, 126px));
+        grid-template-columns: minmax(0, 1fr) repeat(4, minmax(92px, 110px));
         gap: 8px;
         align-items: stretch;
     }

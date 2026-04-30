@@ -17,8 +17,10 @@
     const clearBtn = document.getElementById('clear-btn');
     const deleteWordBtn = document.getElementById('delete-word-btn');
     const speakBtn = document.getElementById('speak-btn');
+    const copyBtn = document.getElementById('copy-btn');
     const gamesBtn = document.getElementById('games-btn');
     const settingsBtn = document.getElementById('settings-btn');
+    const whatsappOpenBtn = document.getElementById('whatsapp-open-btn');
     const closeSettingsBtn = document.getElementById('close-settings');
     const settingsPanel = document.getElementById('settings-panel');
     const settingsOverlay = document.getElementById('settings-overlay');
@@ -462,6 +464,30 @@
             speakText();
         };
 
+        const copyAction = async () => {
+            if (!typedText.trim()) {
+                showToast('No hay texto para copiar');
+                return;
+            }
+
+            const copied = await copyTextToClipboard(typedText);
+            showToast(copied ? 'Texto copiado' : 'No se pudo copiar');
+        };
+
+        const whatsappAction = () => {
+            const message = typedText.trim();
+            if (!message) {
+                showToast('Escriba un mensaje antes de abrir WhatsApp');
+                return;
+            }
+
+            const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            const popup = window.open(url, '_blank', 'noopener,noreferrer');
+            if (!popup) {
+                window.location.href = url;
+            }
+        };
+
         const gamesAction = () => {
             if (window.FullscreenHandoff) window.FullscreenHandoff.rememberIntent();
             window.location.href = 'games.html';
@@ -471,8 +497,41 @@
         attachDwellToActionBtn(clearBtn, clearAction);
         attachDwellToActionBtn(deleteWordBtn, deleteWordAction);
         attachDwellToActionBtn(speakBtn, speakAction);
+        if (copyBtn) attachDwellToActionBtn(copyBtn, copyAction);
+        if (whatsappOpenBtn) attachDwellToActionBtn(whatsappOpenBtn, whatsappAction);
         if (gamesBtn) attachDwellToActionBtn(gamesBtn, gamesAction);
         attachDwellToActionBtn(settingsBtn, settingsAction);
+    }
+
+    async function copyTextToClipboard(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+            try {
+                await navigator.clipboard.writeText(text);
+                return true;
+            } catch (error) {
+                // Fall through to the legacy copy path.
+            }
+        }
+
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.setAttribute('readonly', 'readonly');
+        textarea.style.position = 'fixed';
+        textarea.style.top = '-9999px';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+
+        let copied = false;
+        try {
+            copied = document.execCommand('copy');
+        } catch (error) {
+            copied = false;
+        }
+
+        textarea.remove();
+        return copied;
     }
 
     /**
@@ -906,6 +965,7 @@
         navGrid.push(...groupElementsByVisualRows(
             [
                 document.getElementById('speak-btn'),
+                document.getElementById('copy-btn'),
                 document.getElementById('delete-word-btn'),
                 document.getElementById('clear-btn'),
             ],
@@ -1099,28 +1159,28 @@
 
             switch (direction) {
                 case 'ArrowRight':
-                    primaryDistance = center.x - currentCenter.x;
+                    primaryDistance = rect.left - currentRect.right;
                     if (primaryDistance <= 0) return;
                     secondaryDistance = Math.abs(center.y - currentCenter.y);
                     overlapsAxis = rangesOverlap(currentRect.top, currentRect.bottom, rect.top, rect.bottom);
                     break;
 
                 case 'ArrowLeft':
-                    primaryDistance = currentCenter.x - center.x;
+                    primaryDistance = currentRect.left - rect.right;
                     if (primaryDistance <= 0) return;
                     secondaryDistance = Math.abs(center.y - currentCenter.y);
                     overlapsAxis = rangesOverlap(currentRect.top, currentRect.bottom, rect.top, rect.bottom);
                     break;
 
                 case 'ArrowDown':
-                    primaryDistance = center.y - currentCenter.y;
+                    primaryDistance = rect.top - currentRect.bottom;
                     if (primaryDistance <= 0) return;
                     secondaryDistance = Math.abs(center.x - currentCenter.x);
                     overlapsAxis = rangesOverlap(currentRect.left, currentRect.right, rect.left, rect.right);
                     break;
 
                 case 'ArrowUp':
-                    primaryDistance = currentCenter.y - center.y;
+                    primaryDistance = currentRect.top - rect.bottom;
                     if (primaryDistance <= 0) return;
                     secondaryDistance = Math.abs(center.x - currentCenter.x);
                     overlapsAxis = rangesOverlap(currentRect.left, currentRect.right, rect.left, rect.right);
