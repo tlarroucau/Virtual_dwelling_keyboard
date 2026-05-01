@@ -159,6 +159,72 @@
     color: #fff;
 }
 
+/* --- Solitario Preview (on card) --- */
+.solitario-card {
+    max-width: 400px;
+    padding: 32px 48px;
+}
+
+.solitario-preview {
+    position: relative;
+    width: 150px;
+    height: 106px;
+    margin-bottom: 2px;
+}
+
+.preview-card {
+    position: absolute;
+    top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 58px;
+    height: 78px;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.78);
+    background: #f7f3e8;
+    color: #20243a;
+    font-size: 1.05rem;
+    font-weight: 800;
+    box-shadow: var(--shadow-sm);
+}
+
+.preview-card-back {
+    left: 2px;
+    rotate: -12deg;
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent),
+        repeating-linear-gradient(45deg, #244d45 0 7px, #2f6a5d 7px 14px);
+    color: #f7d66b;
+}
+
+.preview-card-red {
+    left: 45px;
+    color: #c33232;
+    rotate: -1deg;
+}
+
+.preview-card-black {
+    left: 88px;
+    color: #1b2436;
+    rotate: 10deg;
+}
+
+.preview-comodin {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--accent-secondary);
+    box-shadow: 0 4px 18px var(--accent-secondary-glow);
+    font-size: 1.8rem;
+}
+
 /* --- Game Area (common) --- */
 .game-area {
     flex: 1;
@@ -461,6 +527,380 @@ body.theme-light .sudoku-cell.given {
 }
 
 /* ============================================================
+   SOLITARIO
+   ============================================================ */
+.solitario-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+    min-width: 0;
+    max-width: 1160px;
+    margin: 0 auto;
+}
+
+.solitario-status-row {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.comodin-panel,
+.solitario-score {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.comodin-panel {
+    flex: 1 1 420px;
+    min-width: 0;
+}
+
+.comodin-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 48px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--accent-secondary);
+    box-shadow: 0 4px 18px var(--accent-secondary-glow);
+    font-size: 2rem;
+}
+
+.comodin-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    color: var(--text-secondary);
+    line-height: 1.25;
+}
+
+.comodin-copy strong {
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.comodin-copy span {
+    font-size: 0.95rem;
+}
+
+.solitario-score {
+    flex: 0 0 auto;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.solitario-score strong {
+    color: var(--accent-light);
+}
+
+.solitario-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    padding: 16px;
+    background:
+        linear-gradient(135deg, rgba(0, 212, 170, 0.14), transparent 42%),
+        var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.solitario-draw-area,
+.solitario-foundations {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.solitario-foundations {
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.solitario-pile-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+}
+
+.solitario-pile-label {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0;
+}
+
+.solitario-pile {
+    min-width: 86px;
+    min-height: 118px;
+}
+
+#solitario-waste.solitario-pile {
+    min-width: 140px;
+    min-height: 130px;
+}
+
+.sol-waste-stack {
+    position: relative;
+    width: 140px;
+    min-height: 130px;
+}
+
+.sol-waste-stack .sol-card {
+    position: absolute;
+    top: 0;
+}
+
+.sol-card.waste-preview {
+    cursor: default;
+    opacity: 0.72;
+    filter: saturate(0.85);
+}
+
+.sol-card.waste-preview:hover {
+    border-color: var(--border);
+    box-shadow: var(--shadow-sm);
+    transform: none;
+}
+
+.sol-card.waste-preview .dwell-fill {
+    display: none;
+}
+
+.solitario-tableau {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(80px, 1fr));
+    gap: 10px;
+    align-items: start;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 16px;
+    overflow-x: auto;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent),
+        #163f3b;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+}
+
+[data-theme="light"] .solitario-tableau {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.3), transparent),
+        #dceee8;
+    border-color: rgba(20, 96, 83, 0.14);
+}
+
+[data-theme="high-contrast"] .solitario-tableau {
+    background: #050505;
+    border-color: var(--accent);
+}
+
+.solitario-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+    min-height: 140px;
+}
+
+.sol-card,
+.sol-empty-slot,
+.sol-stock-button {
+    display: flex;
+    position: relative;
+    align-items: stretch;
+    justify-content: stretch;
+    width: min(92px, 100%);
+    min-width: 72px;
+    aspect-ratio: 0.72;
+    padding: 0;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-family: var(--font-family);
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+    box-shadow: var(--shadow-sm);
+    user-select: none;
+}
+
+.sol-card {
+    background: #faf7ed;
+    color: #182033;
+}
+
+.sol-card.red {
+    color: #c03535;
+}
+
+.sol-card.black {
+    color: #172033;
+}
+
+.sol-card:hover,
+.sol-empty-slot:hover,
+.sol-stock-button:hover {
+    border-color: var(--accent);
+    box-shadow: 0 5px 18px var(--accent-glow);
+    transform: translateY(-2px);
+}
+
+.sol-card.selected {
+    border-color: var(--accent-secondary);
+    box-shadow: 0 0 0 4px var(--accent-secondary-glow), var(--shadow-md);
+    transform: translateY(-3px);
+}
+
+.sol-card.sequence-selected {
+    border-color: var(--accent-secondary);
+}
+
+.sol-card.dwelling,
+.sol-empty-slot.dwelling,
+.sol-stock-button.dwelling {
+    border-color: var(--accent);
+    box-shadow: 0 4px 18px var(--accent-glow);
+}
+
+.sol-card .dwell-fill,
+.sol-empty-slot .dwell-fill,
+.sol-stock-button .dwell-fill {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0%;
+    height: 4px;
+    background: var(--accent);
+    transition: width linear;
+    z-index: 5;
+}
+
+.sol-card.dwelling .dwell-fill,
+.sol-empty-slot.dwelling .dwell-fill,
+.sol-stock-button.dwelling .dwell-fill {
+    width: 100%;
+}
+
+.sol-card-inner {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    width: 100%;
+    min-height: 100%;
+    padding: 7px;
+}
+
+.sol-card-corner {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    font-size: 0.78rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.sol-card-corner.bottom {
+    align-items: flex-start;
+    justify-self: end;
+    rotate: 180deg;
+}
+
+.sol-card-center {
+    align-self: center;
+    justify-self: center;
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.sol-tableau-card + .sol-tableau-card {
+    margin-top: -72px;
+}
+
+.sol-tableau-card-face-up + .sol-tableau-card-face-up {
+    margin-top: -64px;
+}
+
+.sol-tableau-card-covered.arrow-focused {
+    z-index: var(--sol-tableau-layer) !important;
+    transform: none !important;
+    outline-offset: -2px;
+    box-shadow: inset 0 0 0 3px var(--accent), 0 0 0 3px var(--accent-glow) !important;
+}
+
+.sol-card.face-down,
+.sol-stock-button.has-stock {
+    align-items: center;
+    justify-content: center;
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 42%),
+        repeating-linear-gradient(45deg, #214a43 0 8px, #2e675c 8px 16px);
+    color: #f5d76d;
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+.sol-stock-button.empty,
+.sol-empty-slot {
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    border-style: dashed;
+    font-size: 0.86rem;
+    font-weight: 800;
+    text-align: center;
+}
+
+.sol-foundation-slot .sol-empty-slot {
+    color: var(--accent-light);
+    font-size: 1.45rem;
+}
+
+.sol-stock-count {
+    position: absolute;
+    right: 6px;
+    bottom: 7px;
+    min-width: 24px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.38);
+    color: #fff;
+    font-size: 0.8rem;
+}
+
+.sol-placeholder-text {
+    padding: 8px;
+}
+
+.solitario-message-pulse {
+    animation: solitarioPulse 0.55s ease;
+}
+
+@keyframes solitarioPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+}
+
+/* ============================================================
    Responsive
    ============================================================ */
 @media (max-width: 900px) {
@@ -510,6 +950,40 @@ body.theme-light .sudoku-cell.given {
     .numpad-btn.erase-btn {
         grid-column: auto;
     }
+
+    .solitario-card {
+        padding: 24px 32px;
+    }
+
+    .solitario-top-row {
+        flex-direction: column;
+    }
+
+    .solitario-foundations,
+    .solitario-draw-area {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .solitario-tableau {
+        grid-template-columns: repeat(7, minmax(74px, 1fr));
+        gap: 8px;
+        padding: 12px;
+    }
+
+    .sol-card,
+    .sol-empty-slot,
+    .sol-stock-button {
+        min-width: 66px;
+    }
+
+    .sol-tableau-card + .sol-tableau-card {
+        margin-top: -66px;
+    }
+
+    .sol-tableau-card-face-up + .sol-tableau-card-face-up {
+        margin-top: -46px;
+    }
 }
 
 @media (max-width: 600px) {
@@ -556,6 +1030,150 @@ body.theme-light .sudoku-cell.given {
         width: 24px;
         height: 24px;
         font-size: 0.8rem;
+    }
+
+    .solitario-preview {
+        width: 120px;
+        height: 88px;
+    }
+
+    .preview-card {
+        width: 46px;
+        height: 62px;
+        font-size: 0.9rem;
+    }
+
+    .preview-card-red {
+        left: 36px;
+    }
+
+    .preview-card-black {
+        left: 70px;
+    }
+
+    .preview-comodin {
+        width: 34px;
+        height: 34px;
+        font-size: 1.35rem;
+    }
+
+    .comodin-panel,
+    .solitario-score {
+        padding: 10px;
+    }
+
+    .comodin-avatar {
+        flex-basis: 42px;
+        width: 42px;
+        height: 42px;
+        font-size: 1.65rem;
+    }
+
+    .solitario-tableau {
+        grid-template-columns: repeat(7, 72px);
+        max-width: 100%;
+    }
+
+    .solitario-foundations {
+        gap: 8px;
+    }
+
+    .solitario-pile {
+        min-width: 72px;
+        min-height: 100px;
+    }
+
+    #solitario-waste.solitario-pile,
+    .sol-waste-stack {
+        min-width: 120px;
+        width: 120px;
+        min-height: 130px;
+    }
+
+    .sol-card-center {
+        font-size: 1.55rem;
+    }
+}
+
+@media (max-height: 820px) and (min-width: 760px) {
+    .games-app {
+        gap: 10px;
+    }
+
+    .games-top-bar,
+    .game-header {
+        padding: 8px 20px;
+    }
+
+    .solitario-layout {
+        gap: 10px;
+    }
+
+    .comodin-panel,
+    .solitario-score {
+        padding: 8px 12px;
+    }
+
+    .comodin-avatar {
+        flex-basis: 40px;
+        width: 40px;
+        height: 40px;
+        font-size: 1.6rem;
+    }
+
+    .comodin-copy span,
+    .solitario-score {
+        font-size: 0.86rem;
+    }
+
+    .solitario-top-row,
+    .solitario-tableau {
+        padding: 10px;
+    }
+
+    .solitario-pile {
+        min-width: 72px;
+        min-height: 100px;
+    }
+
+    #solitario-waste.solitario-pile,
+    .sol-waste-stack {
+        min-width: 120px;
+        width: 120px;
+        min-height: 100px;
+    }
+
+    .sol-card,
+    .sol-empty-slot,
+    .sol-stock-button {
+        width: min(72px, 100%);
+        min-width: 58px;
+    }
+
+    .sol-card-inner {
+        padding: 5px;
+    }
+
+    .sol-card-corner {
+        font-size: 0.66rem;
+    }
+
+    .sol-card-center {
+        font-size: 1.45rem;
+    }
+
+    .sol-tableau-card + .sol-tableau-card {
+        margin-top: -76px;
+    }
+
+    .sol-tableau-card-face-up + .sol-tableau-card-face-up {
+        margin-top: -52px;
+    }
+
+    .game-message {
+        min-height: 28px;
+        padding: 4px;
+        font-size: 1rem;
     }
 }
 

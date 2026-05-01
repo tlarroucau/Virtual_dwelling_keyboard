@@ -1,0 +1,33 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - button "Volver al teclado" [ref=e4] [cursor=pointer]:
+      - generic [ref=e5]: ⬅️
+      - generic [ref=e6]: Volver
+    - heading "🎮 Juegos" [level=1] [ref=e7]
+  - region "Seleccionar juego" [ref=e8]:
+    - button "Jugar Sudoku" [ref=e9] [cursor=pointer]:
+      - generic [ref=e10]:
+        - generic [ref=e11]:
+          - generic [ref=e12]: "5"
+          - generic [ref=e13]: "3"
+          - generic [ref=e15]: "6"
+        - generic [ref=e16]:
+          - generic [ref=e17]: "6"
+          - generic [ref=e19]: "1"
+          - generic [ref=e20]: "9"
+        - generic [ref=e21]:
+          - generic [ref=e23]: "9"
+          - generic [ref=e24]: "8"
+        - generic [ref=e26]:
+          - generic [ref=e27]: "8"
+          - generic [ref=e30]: "6"
+      - generic [ref=e31]: Sudoku
+      - generic [ref=e32]: Completa la cuadrícula 9×9 con números del 1 al 9
+    - button "Jugar Solitario" [ref=e33] [cursor=pointer]:
+      - generic [ref=e34]:
+        - generic [ref=e35]: ★
+        - generic [ref=e36]: A♥
+        - generic [ref=e37]: K♠
+        - generic [ref=e38]: 🃏
+      - generic [ref=e39]: Solitario
+      - generic [ref=e40]: Ordena las cartas por pinta con ayuda de Comodin Larroucau

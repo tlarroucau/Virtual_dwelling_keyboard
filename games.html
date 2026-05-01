@@ -55,6 +55,17 @@
                 <span class="game-card-desc">Completa la cuadrícula 9×9 con números del 1 al 9</span>
                 <div class="dwell-fill"></div>
             </button>
+            <button class="game-card solitario-card" id="select-solitario" aria-label="Jugar Solitario">
+                <div class="solitario-preview" aria-hidden="true">
+                    <span class="preview-card preview-card-back">★</span>
+                    <span class="preview-card preview-card-red">A♥</span>
+                    <span class="preview-card preview-card-black">K♠</span>
+                    <span class="preview-comodin">🃏</span>
+                </div>
+                <span class="game-card-title">Solitario</span>
+                <span class="game-card-desc">Ordena las cartas por pinta con ayuda de Comodin Larroucau</span>
+                <div class="dwell-fill"></div>
+            </button>
         </section>
 
         <!-- ============================================== -->
@@ -91,6 +102,80 @@
                 </div>
             </div>
             <div class="game-message" id="sudoku-message"></div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- SOLITARIO GAME                                 -->
+        <!-- ============================================== -->
+        <section class="game-area" id="solitario-area" style="display:none" aria-label="Juego de Solitario">
+            <div class="game-header">
+                <h2 class="game-name">🃏 Solitario</h2>
+                <div class="game-controls">
+                    <button class="game-btn" id="solitario-new" aria-label="Nuevo Solitario">
+                        <span>🔄</span> <span>Nuevo</span>
+                        <div class="dwell-fill"></div>
+                    </button>
+                    <button class="game-btn" id="solitario-draw" aria-label="Robar carta o cartas">
+                        <span>🂠</span> <span>Robar</span>
+                        <div class="dwell-fill"></div>
+                    </button>
+                    <button class="game-btn" id="solitario-draw-mode" aria-label="Cambiar modo de robo">
+                        <span>☰</span> <span id="solitario-draw-mode-label">Robo 3</span>
+                        <div class="dwell-fill"></div>
+                    </button>
+                    <button class="game-btn" id="solitario-undo" aria-label="Deshacer último movimiento">
+                        <span>↩️</span> <span>Deshacer</span>
+                        <div class="dwell-fill"></div>
+                    </button>
+                    <button class="game-btn" id="solitario-hint" aria-label="Pista de Comodin Larroucau">
+                        <span>🃏</span> <span>Comodin Larroucau</span>
+                        <div class="dwell-fill"></div>
+                    </button>
+                    <button class="game-btn" id="solitario-back-to-menu" aria-label="Volver al menú">
+                        <span>📋</span> <span>Menú</span>
+                        <div class="dwell-fill"></div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="solitario-layout">
+                <div class="solitario-status-row">
+                    <div class="comodin-panel" aria-live="polite">
+                        <div class="comodin-avatar" aria-hidden="true">🃏</div>
+                        <div class="comodin-copy">
+                            <strong>Comodin Larroucau</strong>
+                            <span id="solitario-helper">Elige una carta boca arriba y después el lugar donde quieres moverla.</span>
+                        </div>
+                    </div>
+                    <div class="solitario-score" aria-label="Estado del Solitario">
+                        <span>Movimientos: <strong id="solitario-moves">0</strong></span>
+                        <span>Robo: <strong id="solitario-stock-count">0</strong></span>
+                    </div>
+                </div>
+
+                <div class="solitario-top-row">
+                    <div class="solitario-draw-area" aria-label="Pila de robo y descarte">
+                        <div class="solitario-pile-group">
+                            <span class="solitario-pile-label">Robo</span>
+                            <div id="solitario-stock" class="solitario-pile"></div>
+                        </div>
+                        <div class="solitario-pile-group">
+                            <span class="solitario-pile-label">Descarte</span>
+                            <div id="solitario-waste" class="solitario-pile"></div>
+                        </div>
+                    </div>
+
+                    <div class="solitario-foundations" id="solitario-foundations" aria-label="Bases">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <div class="solitario-tableau" id="solitario-tableau" aria-label="Columnas del Solitario">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
+
+            <div class="game-message" id="solitario-message"></div>
         </section>
 
     </main>
