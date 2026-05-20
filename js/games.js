@@ -17,6 +17,9 @@
     let arrowFocusDwellEnabled = false;
     let arrowNavSingleStepEnabled = false;
     let dwellCooldownUntil = 0;
+    let lastActivationKey = '';
+    let lastActivationAt = 0;
+    const DOUBLE_CLICK_SUPPRESSION_MS = 500;
 
     function loadStoredSettings() {
         try {
@@ -44,6 +47,48 @@
 
     function startDwellCooldown() {
         dwellCooldownUntil = Date.now() + Math.max(100, cooldownTime);
+    }
+
+    /**
+     * Return a stable identity for a dwell/click target across re-renders.
+     * @param {HTMLElement} el
+     * @returns {string}
+     */
+    function getActivationKey(el) {
+        if (!el) return '';
+
+        const parts = [
+            el.id,
+            el.dataset.cardId,
+            el.dataset.solKind,
+            el.dataset.solCol,
+            el.dataset.solIndex,
+            el.dataset.solSuit,
+            el.dataset.row,
+            el.dataset.col,
+            el.getAttribute('aria-label'),
+        ].filter(Boolean);
+
+        return parts.join('|');
+    }
+
+    /**
+     * Return true when an activation repeats the same target during a double-click.
+     * @param {PointerEvent} event
+     * @param {HTMLElement} el
+     * @returns {boolean}
+     */
+    function isRepeatedClick(event, el) {
+        const key = getActivationKey(el);
+        const now = Date.now();
+        const repeatsLastActivation = key && key === lastActivationKey &&
+            now - lastActivationAt < DOUBLE_CLICK_SUPPRESSION_MS;
+
+        if (event.detail > 1 || repeatsLastActivation) return true;
+
+        lastActivationKey = key;
+        lastActivationAt = now;
+        return false;
     }
 
     /**
@@ -81,6 +126,8 @@
                 clearTimeout(timer);
                 timer = null;
             }
+            if (isRepeatedClick(e, btn)) return;
+
             action();
             playSound();
             startDwellCooldown();

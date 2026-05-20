@@ -690,6 +690,17 @@ body.theme-light .sudoku-cell.given {
    SOLITARIO
    ============================================================ */
 .solitario-layout {
+    --sol-card-width: 132px;
+    --sol-card-min-width: 112px;
+    --sol-card-padding: 11px;
+    --sol-card-corner-size: 1.28rem;
+    --sol-card-center-size: 3.45rem;
+    --sol-card-radius: 10px;
+    --sol-card-overlap: -98px;
+    --sol-face-up-overlap: -88px;
+    --sol-pile-width: 132px;
+    --sol-pile-height: 183px;
+    --sol-waste-width: 184px;
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -766,6 +777,157 @@ body.theme-light .sudoku-cell.given {
     color: var(--accent-light);
 }
 
+body.solitario-game-active .games-app {
+    position: relative;
+    gap: 8px;
+    padding: 8px 12px;
+}
+
+body.solitario-game-active .games-top-bar {
+    position: absolute;
+    top: 8px;
+    left: 12px;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: auto;
+    min-height: 0;
+    gap: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+body.solitario-game-active .games-title {
+    display: none;
+}
+
+body.solitario-game-active .games-top-spacer {
+    display: none;
+}
+
+body.solitario-game-active .games-top-bar .action-btn-large {
+    flex-direction: row;
+    gap: 6px;
+    min-height: 40px;
+    padding: 6px 10px;
+    border-width: 1px;
+    border-radius: var(--radius-md);
+    font-size: 0.84rem;
+}
+
+body.solitario-game-active .games-top-bar .action-btn-large .btn-icon {
+    font-size: 1rem;
+}
+
+body.solitario-game-active #solitario-area {
+    gap: 8px;
+}
+
+body.solitario-game-active #solitario-area > .game-header {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px 6px 112px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+body.solitario-game-active #solitario-area .game-name {
+    flex: 0 0 auto;
+    font-size: clamp(1rem, 1.3vw, 1.18rem);
+    line-height: 1;
+}
+
+body.solitario-game-active #solitario-area .game-controls {
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
+    gap: 6px;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+
+body.solitario-game-active #solitario-area .game-btn {
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 7px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 0.84rem;
+}
+
+body.solitario-game-active .solitario-layout {
+    gap: 8px;
+    max-width: none;
+}
+
+body.solitario-game-active .solitario-status-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: stretch;
+}
+
+body.solitario-game-active .comodin-panel,
+body.solitario-game-active .solitario-score {
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+body.solitario-game-active .comodin-avatar {
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+    font-size: 1.35rem;
+}
+
+body.solitario-game-active .comodin-copy {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: baseline;
+    gap: 8px;
+    line-height: 1.1;
+}
+
+body.solitario-game-active .comodin-copy strong {
+    font-size: 0.82rem;
+    white-space: nowrap;
+}
+
+body.solitario-game-active .comodin-copy span {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 0.86rem;
+    line-height: 1.15;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+body.solitario-game-active .solitario-score {
+    align-items: center;
+    flex-wrap: nowrap;
+    font-size: 0.86rem;
+    white-space: nowrap;
+}
+
+body.solitario-game-active .solitario-top-row,
+body.solitario-game-active .solitario-tableau {
+    padding: 8px;
+}
+
+body.solitario-game-active .solitario-pile-group {
+    gap: 4px;
+}
+
+body.solitario-game-active .solitario-pile-label {
+    font-size: 0.72rem;
+}
+
 .solitario-top-row {
     display: flex;
     justify-content: space-between;
@@ -808,19 +970,19 @@ body.theme-light .sudoku-cell.given {
 }
 
 .solitario-pile {
-    min-width: 86px;
-    min-height: 118px;
+    min-width: var(--sol-pile-width);
+    min-height: var(--sol-pile-height);
 }
 
 #solitario-waste.solitario-pile {
-    min-width: 140px;
-    min-height: 130px;
+    min-width: var(--sol-waste-width);
+    min-height: var(--sol-pile-height);
 }
 
 .sol-waste-stack {
     position: relative;
-    width: 140px;
-    min-height: 130px;
+    width: var(--sol-waste-width);
+    min-height: var(--sol-pile-height);
 }
 
 .sol-waste-stack .sol-card {
@@ -846,8 +1008,8 @@ body.theme-light .sudoku-cell.given {
 
 .solitario-tableau {
     display: grid;
-    grid-template-columns: repeat(7, minmax(80px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(7, minmax(var(--sol-card-min-width), 1fr));
+    gap: 12px;
     align-items: start;
     width: 100%;
     min-width: 0;
@@ -889,12 +1051,12 @@ body.theme-light .sudoku-cell.given {
     position: relative;
     align-items: stretch;
     justify-content: stretch;
-    width: min(92px, 100%);
-    min-width: 72px;
+    width: min(var(--sol-card-width), 100%);
+    min-width: var(--sol-card-min-width);
     aspect-ratio: 0.72;
     padding: 0;
     border: 2px solid var(--border);
-    border-radius: 8px;
+    border-radius: var(--sol-card-radius);
     font-family: var(--font-family);
     cursor: pointer;
     overflow: hidden;
@@ -965,7 +1127,7 @@ body.theme-light .sudoku-cell.given {
     grid-template-rows: auto 1fr auto;
     width: 100%;
     min-height: 100%;
-    padding: 7px;
+    padding: var(--sol-card-padding);
 }
 
 .sol-card-corner {
@@ -973,7 +1135,7 @@ body.theme-light .sudoku-cell.given {
     flex-direction: column;
     align-items: flex-start;
     gap: 0;
-    font-size: 0.78rem;
+    font-size: var(--sol-card-corner-size);
     font-weight: 800;
     line-height: 1;
 }
@@ -987,16 +1149,16 @@ body.theme-light .sudoku-cell.given {
 .sol-card-center {
     align-self: center;
     justify-self: center;
-    font-size: 2rem;
+    font-size: var(--sol-card-center-size);
     line-height: 1;
 }
 
 .sol-tableau-card + .sol-tableau-card {
-    margin-top: -72px;
+    margin-top: var(--sol-card-overlap);
 }
 
 .sol-tableau-card-face-up + .sol-tableau-card-face-up {
-    margin-top: -64px;
+    margin-top: var(--sol-face-up-overlap);
 }
 
 .sol-tableau-card-covered.arrow-focused {
@@ -1014,7 +1176,7 @@ body.theme-light .sudoku-cell.given {
         linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 42%),
         repeating-linear-gradient(45deg, #214a43 0 8px, #2e675c 8px 16px);
     color: #f5d76d;
-    font-size: 1.5rem;
+    font-size: 2.25rem;
     font-weight: 800;
 }
 
@@ -1025,14 +1187,14 @@ body.theme-light .sudoku-cell.given {
     background: rgba(255, 255, 255, 0.05);
     color: var(--text-secondary);
     border-style: dashed;
-    font-size: 0.86rem;
+    font-size: 1rem;
     font-weight: 800;
     text-align: center;
 }
 
 .sol-foundation-slot .sol-empty-slot {
     color: var(--accent-light);
-    font-size: 1.45rem;
+    font-size: 2.15rem;
 }
 
 .sol-stock-count {
@@ -1121,6 +1283,19 @@ body.theme-light .sudoku-cell.given {
         padding: 24px 32px;
     }
 
+    .solitario-layout {
+        --sol-card-width: 120px;
+        --sol-card-min-width: 100px;
+        --sol-card-padding: 10px;
+        --sol-card-corner-size: 1.16rem;
+        --sol-card-center-size: 3.05rem;
+        --sol-card-overlap: -90px;
+        --sol-face-up-overlap: -78px;
+        --sol-pile-width: 120px;
+        --sol-pile-height: 167px;
+        --sol-waste-width: 172px;
+    }
+
     .solitario-top-row {
         flex-direction: column;
     }
@@ -1132,23 +1307,9 @@ body.theme-light .sudoku-cell.given {
     }
 
     .solitario-tableau {
-        grid-template-columns: repeat(7, minmax(74px, 1fr));
+        grid-template-columns: repeat(7, minmax(var(--sol-card-min-width), 1fr));
         gap: 8px;
         padding: 12px;
-    }
-
-    .sol-card,
-    .sol-empty-slot,
-    .sol-stock-button {
-        min-width: 66px;
-    }
-
-    .sol-tableau-card + .sol-tableau-card {
-        margin-top: -66px;
-    }
-
-    .sol-tableau-card-face-up + .sol-tableau-card-face-up {
-        margin-top: -46px;
     }
 }
 
@@ -1235,8 +1396,21 @@ body.theme-light .sudoku-cell.given {
         font-size: 1.65rem;
     }
 
+    .solitario-layout {
+        --sol-card-width: 104px;
+        --sol-card-min-width: 96px;
+        --sol-card-padding: 9px;
+        --sol-card-corner-size: 1.02rem;
+        --sol-card-center-size: 2.55rem;
+        --sol-card-overlap: -80px;
+        --sol-face-up-overlap: -66px;
+        --sol-pile-width: 104px;
+        --sol-pile-height: 144px;
+        --sol-waste-width: 154px;
+    }
+
     .solitario-tableau {
-        grid-template-columns: repeat(7, 72px);
+        grid-template-columns: repeat(7, var(--sol-card-width));
         max-width: 100%;
     }
 
@@ -1244,21 +1418,6 @@ body.theme-light .sudoku-cell.given {
         gap: 8px;
     }
 
-    .solitario-pile {
-        min-width: 72px;
-        min-height: 100px;
-    }
-
-    #solitario-waste.solitario-pile,
-    .sol-waste-stack {
-        min-width: 120px;
-        width: 120px;
-        min-height: 130px;
-    }
-
-    .sol-card-center {
-        font-size: 1.55rem;
-    }
 }
 
 @media (max-height: 820px) and (min-width: 760px) {
@@ -1272,6 +1431,16 @@ body.theme-light .sudoku-cell.given {
     }
 
     .solitario-layout {
+        --sol-card-width: 112px;
+        --sol-card-min-width: 100px;
+        --sol-card-padding: 9px;
+        --sol-card-corner-size: 1.08rem;
+        --sol-card-center-size: 2.75rem;
+        --sol-card-overlap: -94px;
+        --sol-face-up-overlap: -78px;
+        --sol-pile-width: 112px;
+        --sol-pile-height: 156px;
+        --sol-waste-width: 164px;
         gap: 10px;
     }
 
@@ -1295,45 +1464,6 @@ body.theme-light .sudoku-cell.given {
     .solitario-top-row,
     .solitario-tableau {
         padding: 10px;
-    }
-
-    .solitario-pile {
-        min-width: 72px;
-        min-height: 100px;
-    }
-
-    #solitario-waste.solitario-pile,
-    .sol-waste-stack {
-        min-width: 120px;
-        width: 120px;
-        min-height: 100px;
-    }
-
-    .sol-card,
-    .sol-empty-slot,
-    .sol-stock-button {
-        width: min(72px, 100%);
-        min-width: 58px;
-    }
-
-    .sol-card-inner {
-        padding: 5px;
-    }
-
-    .sol-card-corner {
-        font-size: 0.66rem;
-    }
-
-    .sol-card-center {
-        font-size: 1.45rem;
-    }
-
-    .sol-tableau-card + .sol-tableau-card {
-        margin-top: -76px;
-    }
-
-    .sol-tableau-card-face-up + .sol-tableau-card-face-up {
-        margin-top: -52px;
     }
 
     .game-message {
