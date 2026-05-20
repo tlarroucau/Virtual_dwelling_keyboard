@@ -336,6 +336,14 @@
     justify-content: center;
     align-items: flex-start;
     flex-wrap: wrap;
+    width: 100%;
+}
+
+.sudoku-side-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
 }
 
 .sudoku-board {
@@ -524,6 +532,158 @@ body.theme-light .sudoku-cell.given {
     padding: 12px;
     font-size: 1.1rem;
     background: var(--bg-tertiary);
+}
+
+@media (min-width: 760px) and (min-height: 560px) {
+    body.sudoku-game-active {
+        overflow: hidden;
+        --sudoku-side-width: clamp(220px, 22vw, 320px);
+        --sudoku-page-pad-y: clamp(8px, 1.3vh, 14px);
+        --sudoku-page-pad-x: clamp(10px, 1.5vw, 20px);
+        --sudoku-layout-gap: clamp(10px, 1.5vw, 22px);
+    }
+
+    body.sudoku-game-active .games-app {
+        position: relative;
+        min-height: 100vh;
+        height: 100vh;
+        gap: 0;
+        padding: var(--sudoku-page-pad-y) var(--sudoku-page-pad-x);
+    }
+
+    body.sudoku-game-active .games-top-bar {
+        position: absolute;
+        top: var(--sudoku-page-pad-y);
+        right: var(--sudoku-page-pad-x);
+        z-index: 10;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        width: var(--sudoku-side-width);
+        min-height: 0;
+        gap: 8px;
+        padding: 8px;
+        align-items: center;
+    }
+
+    body.sudoku-game-active .games-title {
+        min-width: 0;
+        font-size: clamp(1rem, 1.35vw, 1.25rem);
+        line-height: 1.1;
+        text-align: left;
+    }
+
+    body.sudoku-game-active .games-top-spacer {
+        display: none;
+    }
+
+    body.sudoku-game-active .games-top-bar .action-btn-large {
+        flex-direction: row;
+        gap: 6px;
+        padding: 8px 10px;
+        border-width: 1px;
+        border-radius: var(--radius-md);
+        font-size: 0.82rem;
+    }
+
+    body.sudoku-game-active .games-top-bar .action-btn-large .btn-icon {
+        font-size: 1rem;
+    }
+
+    body.sudoku-game-active .sudoku-game-area {
+        display: flex !important;
+        min-height: calc(100vh - (2 * var(--sudoku-page-pad-y)));
+        height: calc(100vh - (2 * var(--sudoku-page-pad-y)));
+        gap: 0;
+    }
+
+    body.sudoku-game-active .sudoku-container {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) var(--sudoku-side-width);
+        gap: var(--sudoku-layout-gap);
+        align-items: stretch;
+        justify-content: stretch;
+        flex: 1;
+        height: 100%;
+        min-height: 0;
+        flex-wrap: nowrap;
+    }
+
+    body.sudoku-game-active .sudoku-board {
+        place-self: center;
+        width: min(
+            calc(100vh - (2 * var(--sudoku-page-pad-y))),
+            calc(100vw - var(--sudoku-side-width) - var(--sudoku-layout-gap) - (2 * var(--sudoku-page-pad-x)))
+        );
+        max-width: 100%;
+        max-height: 100%;
+        border-width: 3px;
+    }
+
+    body.sudoku-game-active .sudoku-side-panel {
+        align-self: stretch;
+        width: var(--sudoku-side-width);
+        padding-top: clamp(72px, 11vh, 92px);
+        min-height: 0;
+    }
+
+    body.sudoku-game-active .sudoku-side-panel .game-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        padding: 10px;
+        flex-wrap: nowrap;
+    }
+
+    body.sudoku-game-active .sudoku-side-panel .game-name {
+        font-size: clamp(1rem, 1.4vw, 1.25rem);
+        line-height: 1.1;
+    }
+
+    body.sudoku-game-active .sudoku-side-panel .game-controls {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    body.sudoku-game-active .sudoku-side-panel .game-btn {
+        justify-content: center;
+        min-width: 0;
+        padding: 10px 8px;
+        font-size: clamp(0.78rem, 1.05vw, 0.95rem);
+    }
+
+    body.sudoku-game-active .sudoku-numpad {
+        width: 100%;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    body.sudoku-game-active .numpad-btn {
+        min-width: 0;
+        padding: 0;
+        font-size: clamp(1.35rem, 3.4vh, 2rem);
+    }
+
+    body.sudoku-game-active .numpad-btn.erase-btn {
+        grid-column: 1 / -1;
+        min-height: clamp(44px, 7vh, 64px);
+        padding: 8px;
+        font-size: clamp(0.95rem, 1.4vw, 1.15rem);
+    }
+
+    body.sudoku-game-active #sudoku-message {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: clamp(48px, 10vh, 76px);
+        margin-top: auto;
+        padding: 8px 10px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: var(--bg-secondary);
+        font-size: clamp(0.95rem, 1.4vw, 1.15rem);
+        line-height: 1.2;
+    }
 }
 
 /* ============================================================
@@ -936,9 +1096,15 @@ body.theme-light .sudoku-cell.given {
         align-items: center;
     }
 
+    .sudoku-side-panel {
+        width: min(100%, 520px);
+        align-items: stretch;
+    }
+
     .sudoku-numpad {
         width: min(300px, 80vw);
         grid-template-columns: repeat(5, 1fr);
+        align-self: center;
     }
 
     .numpad-btn {

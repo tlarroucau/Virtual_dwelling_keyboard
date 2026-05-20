@@ -138,7 +138,17 @@
     const sudokuArea = document.getElementById('sudoku-area');
     const solitarioArea = document.getElementById('solitario-area');
 
+    /**
+     * Mark which game layout is active so CSS can optimize each screen.
+     * @param {'selector'|'sudoku'|'solitario'} mode
+     */
+    function setGameLayoutMode(mode) {
+        document.body.classList.toggle('sudoku-game-active', mode === 'sudoku');
+        document.body.classList.toggle('solitario-game-active', mode === 'solitario');
+    }
+
     function showSelector() {
+        setGameLayoutMode('selector');
         gameSelector.style.display = '';
         sudokuArea.style.display = 'none';
         solitarioArea.style.display = 'none';
@@ -147,6 +157,7 @@
     }
 
     function showSudoku() {
+        setGameLayoutMode('sudoku');
         gameSelector.style.display = 'none';
         sudokuArea.style.display = '';
         solitarioArea.style.display = 'none';
@@ -156,6 +167,7 @@
     }
 
     function showSolitario() {
+        setGameLayoutMode('solitario');
         gameSelector.style.display = 'none';
         sudokuArea.style.display = 'none';
         solitarioArea.style.display = '';

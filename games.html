@@ -71,37 +71,39 @@
         <!-- ============================================== -->
         <!-- SUDOKU GAME                                    -->
         <!-- ============================================== -->
-        <section class="game-area" id="sudoku-area" style="display:none" aria-label="Juego de Sudoku">
-            <div class="game-header">
-                <h2 class="game-name">🔢 Sudoku</h2>
-                <div class="game-controls">
-                    <button class="game-btn" id="sudoku-new" aria-label="Nuevo juego">
-                        <span>🔄</span> <span>Nuevo</span>
-                        <div class="dwell-fill"></div>
-                    </button>
-                    <button class="game-btn" id="sudoku-check" aria-label="Verificar solución">
-                        <span>✅</span> <span>Verificar</span>
-                        <div class="dwell-fill"></div>
-                    </button>
-                    <button class="game-btn" id="sudoku-hint" aria-label="Pista">
-                        <span>💡</span> <span>Pista</span>
-                        <div class="dwell-fill"></div>
-                    </button>
-                    <button class="game-btn" id="sudoku-back-to-menu" aria-label="Volver al menú">
-                        <span>📋</span> <span>Menú</span>
-                        <div class="dwell-fill"></div>
-                    </button>
-                </div>
-            </div>
+        <section class="game-area sudoku-game-area" id="sudoku-area" style="display:none" aria-label="Juego de Sudoku">
             <div class="sudoku-container">
                 <div class="sudoku-board" id="sudoku-board" aria-label="Tablero de Sudoku">
                     <!-- 9x9 grid rendered by JS -->
                 </div>
-                <div class="sudoku-numpad" id="sudoku-numpad" aria-label="Teclado numérico">
-                    <!-- Number buttons 1-9 + erase -->
-                </div>
+                <aside class="sudoku-side-panel" aria-label="Controles de Sudoku">
+                    <div class="game-header">
+                        <h2 class="game-name">🔢 Sudoku</h2>
+                        <div class="game-controls">
+                            <button class="game-btn" id="sudoku-new" aria-label="Nuevo juego">
+                                <span>🔄</span> <span>Nuevo</span>
+                                <div class="dwell-fill"></div>
+                            </button>
+                            <button class="game-btn" id="sudoku-check" aria-label="Verificar solución">
+                                <span>✅</span> <span>Verificar</span>
+                                <div class="dwell-fill"></div>
+                            </button>
+                            <button class="game-btn" id="sudoku-hint" aria-label="Pista">
+                                <span>💡</span> <span>Pista</span>
+                                <div class="dwell-fill"></div>
+                            </button>
+                            <button class="game-btn" id="sudoku-back-to-menu" aria-label="Volver al menú">
+                                <span>📋</span> <span>Menú</span>
+                                <div class="dwell-fill"></div>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="sudoku-numpad" id="sudoku-numpad" aria-label="Teclado numérico">
+                        <!-- Number buttons 1-9 + erase -->
+                    </div>
+                    <div class="game-message" id="sudoku-message"></div>
+                </aside>
             </div>
-            <div class="game-message" id="sudoku-message"></div>
         </section>
 
         <!-- ============================================== -->
