@@ -947,6 +947,7 @@
     const SOLITARIO_RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
     const SOLITARIO_HISTORY_LIMIT = 80;
     const SOLITARIO_DRAW_COUNTS = [1, 3];
+    const SOLITARIO_TABLEAU_LENGTHS = [1, 2, 3, 4, 5, 6, 7];
 
     let solitarioInitialized = false;
     let solitarioStock = [];
@@ -992,21 +993,41 @@
         return { ...card };
     }
 
-    function createSolitarioDeck() {
-        const deck = [];
-        SOLITARIO_SUITS.forEach((suit) => {
-            SOLITARIO_RANKS.forEach((rank, index) => {
-                deck.push({
-                    id: `${rank}-${suit.id}`,
-                    suit: suit.id,
-                    rank,
-                    value: index + 1,
-                    color: suit.color,
-                    faceUp: false,
-                });
-            });
+    function createSolitarioCard(rank, suit, value) {
+        return {
+            id: `${rank}-${suit.id}`,
+            suit: suit.id,
+            rank,
+            value,
+            color: suit.color,
+            faceUp: false,
+        };
+    }
+
+    function createSolitarioSolutionSequence() {
+        const suitOrder = shuffle([...SOLITARIO_SUITS]);
+        return SOLITARIO_RANKS.flatMap((rank, index) => (
+            suitOrder.map((suit) => createSolitarioCard(rank, suit, index + 1))
+        ));
+    }
+
+    function createSolvableSolitarioDeal() {
+        const solutionSequence = createSolitarioSolutionSequence();
+        let cursor = 0;
+
+        const tableau = SOLITARIO_TABLEAU_LENGTHS.map((length) => {
+            const columnSolution = solutionSequence.slice(cursor, cursor + length);
+            cursor += length;
+            return columnSolution.slice().reverse().map((card, index, column) => ({
+                ...card,
+                faceUp: index === column.length - 1,
+            }));
         });
-        return shuffle(deck);
+
+        return {
+            tableau,
+            stock: solutionSequence.slice(cursor).reverse().map((card) => ({ ...card, faceUp: false })),
+        };
     }
 
     function resetSolitarioFoundations() {
@@ -1017,8 +1038,8 @@
     }
 
     function newSolitarioGame() {
-        const deck = createSolitarioDeck();
-        solitarioTableau = Array.from({ length: 7 }, () => []);
+        const deal = createSolvableSolitarioDeal();
+        solitarioTableau = deal.tableau;
         resetSolitarioFoundations();
         solitarioWaste = [];
         solitarioHistory = [];
@@ -1027,17 +1048,9 @@
         solitarioPostRenderFocusTarget = null;
         solitarioMessageText = '';
         solitarioMessageClass = 'game-message';
-        solitarioHelperText = 'Comodin Larroucau está listo: primero selecciona una carta boca arriba, después una columna o base.';
+        solitarioHelperText = 'Comodin Larroucau preparó una partida con solución: sube las cartas visibles a las bases cuando calcen.';
 
-        for (let col = 0; col < 7; col++) {
-            for (let row = 0; row <= col; row++) {
-                const card = deck.pop();
-                card.faceUp = row === col;
-                solitarioTableau[col].push(card);
-            }
-        }
-
-        solitarioStock = deck;
+        solitarioStock = deal.stock;
         renderSolitario();
     }
 

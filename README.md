@@ -11,6 +11,7 @@ Un teclado virtual basado en web, diseñado para pacientes con movilidad reducid
 - **Predicción de palabras**: Sugerencias de palabras en español que se actualizan en tiempo real (~1500 palabras frecuentes)
 - **Botones de necesidades rápidas**: Emojis para comunicar necesidades básicas (dolor, sed, frío, baño, etc.) con un solo dwell
 - **Frases componibles de dolor**: Botones "Me duele" / "Me incomoda" + partes del cuerpo (cabeza, ojos, espalda, etc.) para formar frases rápidamente
+- **Juegos accesibles**: Sudoku y Solitario con controles por dwell; las partidas nuevas de Solitario se generan con solución
 - **Síntesis de voz con ElevenLabs**: Lee en voz alta el texto escrito usando la API de ElevenLabs (requiere API Key y Voice ID)
 - **Teclado fluido**: Las teclas se adaptan automáticamente al ancho de la ventana — nunca se salen de la pantalla
 - **Personalizable**: Ajusta el tiempo de dwell (300–3000ms), cooldown (100–5000ms), tamaño de teclas, tamaño de emojis, amplificación de fuente, tema visual y más
@@ -106,12 +107,14 @@ Este teclado está diseñado para funcionar con dispositivos de seguimiento ocul
 
 ```
 ├── index.html          # Página principal
+├── games.html          # Juegos accesibles
 ├── css/
 │   └── styles.css      # Estilos, animaciones y temas
 ├── js/
 │   ├── app.js          # Controlador principal, TTS, gestión de estado
 │   ├── keyboard.js     # Layout y renderizado del teclado español
 │   ├── dwell.js        # Motor de dwell (timers, progreso, cooldown)
+│   ├── games.js        # Sudoku, Solitario y navegación de juegos
 │   └── predictor.js    # Predictor de palabras en español (Trie)
 ├── AGENTS.md           # Instrucciones para Copilot/AI
 └── README.md           # Este archivo
