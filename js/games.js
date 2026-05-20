@@ -947,7 +947,6 @@
     const SOLITARIO_RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
     const SOLITARIO_HISTORY_LIMIT = 80;
     const SOLITARIO_DRAW_COUNTS = [1, 3];
-    const SOLITARIO_TABLEAU_LENGTHS = [1, 2, 3, 4, 5, 6, 7];
 
     let solitarioInitialized = false;
     let solitarioStock = [];
@@ -1004,29 +1003,46 @@
         };
     }
 
-    function createSolitarioSolutionSequence() {
-        const suitOrder = shuffle([...SOLITARIO_SUITS]);
-        return SOLITARIO_RANKS.flatMap((rank, index) => (
-            suitOrder.map((suit) => createSolitarioCard(rank, suit, index + 1))
-        ));
+    function cardBySpec(rank, suit) {
+        const value = SOLITARIO_RANKS.indexOf(rank) + 1;
+        return createSolitarioCard(rank, suit, value);
+    }
+
+    function faceDown(card) {
+        return { ...card, faceUp: false };
+    }
+
+    function faceUp(card) {
+        return { ...card, faceUp: true };
     }
 
     function createSolvableSolitarioDeal() {
-        const solutionSequence = createSolitarioSolutionSequence();
-        let cursor = 0;
+        const redSuits = shuffle(SOLITARIO_SUITS.filter((suit) => suit.color === 'red'));
+        const blackSuits = shuffle(SOLITARIO_SUITS.filter((suit) => suit.color === 'black'));
+        const suitOrder = [redSuits[0], redSuits[1], blackSuits[0], blackSuits[1]];
+        const [redA, redB, blackA, blackB] = suitOrder;
 
-        const tableau = SOLITARIO_TABLEAU_LENGTHS.map((length) => {
-            const columnSolution = solutionSequence.slice(cursor, cursor + length);
-            cursor += length;
-            return columnSolution.slice().reverse().map((card, index, column) => ({
-                ...card,
-                faceUp: index === column.length - 1,
-            }));
+        const tableau = [
+            [faceUp(cardBySpec('A', redA))],
+            [faceDown(cardBySpec('A', redB)), faceUp(cardBySpec('K', blackA))],
+            [faceDown(cardBySpec('A', blackA)), faceUp(cardBySpec('K', blackB))],
+            [faceDown(cardBySpec('A', blackB)), faceUp(cardBySpec('Q', redA))],
+            [faceDown(cardBySpec('2', redA)), faceUp(cardBySpec('Q', redB))],
+            [faceDown(cardBySpec('2', redB)), faceUp(cardBySpec('J', blackA))],
+            [faceDown(cardBySpec('2', blackA)), faceUp(cardBySpec('J', blackB)), faceUp(cardBySpec('2', blackB))],
+        ];
+
+        const stockSolution = [];
+        SOLITARIO_RANKS.slice(2, 10).forEach((rank) => {
+            suitOrder.forEach((suit) => stockSolution.push(cardBySpec(rank, suit)));
         });
+        [redA, redB].forEach((suit) => stockSolution.push(cardBySpec('J', suit)));
+        [blackA, blackB].forEach((suit) => stockSolution.push(cardBySpec('Q', suit)));
+        [redA, redB].forEach((suit) => stockSolution.push(cardBySpec('K', suit)));
 
         return {
             tableau,
-            stock: solutionSequence.slice(cursor).reverse().map((card) => ({ ...card, faceUp: false })),
+            stock: stockSolution.reverse().map(faceDown),
         };
     }
 
@@ -1048,7 +1064,7 @@
         solitarioPostRenderFocusTarget = null;
         solitarioMessageText = '';
         solitarioMessageClass = 'game-message';
-        solitarioHelperText = 'Comodin Larroucau preparó una partida con solución: sube las cartas visibles a las bases cuando calcen.';
+        solitarioHelperText = 'Comodin Larroucau preparó una partida con solución: crea espacios, mueve columnas y luego completa las bases.';
 
         solitarioStock = deal.stock;
         renderSolitario();
@@ -2339,6 +2355,11 @@
         window.location.href = `index.html?mode=${mode}`;
     }
 
+    function requestGamesFullscreen() {
+        if (!window.FullscreenHandoff) return;
+        window.FullscreenHandoff.requestFullscreen();
+    }
+
     // ========================================================
     // INITIALIZATION
     // ========================================================
@@ -2355,6 +2376,7 @@
         attachDwell(document.getElementById('sudoku-check'), () => checkSudokuSolution());
         attachDwell(document.getElementById('sudoku-hint'), () => giveSudokuHint());
         attachDwell(document.getElementById('sudoku-back-to-menu'), showSelector);
+        attachDwell(document.getElementById('sudoku-fullscreen'), requestGamesFullscreen);
         attachDwell(document.getElementById('sudoku-open-emojis'), () => openMainAppMode('emoji'));
         attachDwell(document.getElementById('sudoku-open-keyboard'), () => openMainAppMode('keyboard'));
 
@@ -2365,6 +2387,7 @@
         attachDwell(document.getElementById('solitario-undo'), () => undoSolitarioMove());
         attachDwell(document.getElementById('solitario-hint'), () => giveSolitarioHint());
         attachDwell(document.getElementById('solitario-back-to-menu'), showSelector);
+        attachDwell(document.getElementById('solitario-fullscreen'), requestGamesFullscreen);
         attachDwell(document.getElementById('solitario-open-emojis'), () => openMainAppMode('emoji'));
         attachDwell(document.getElementById('solitario-open-keyboard'), () => openMainAppMode('keyboard'));
 

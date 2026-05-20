@@ -30,6 +30,7 @@
     const emojiOverlay = document.getElementById('emoji-overlay');
     const emojiOverlayClose = document.getElementById('emoji-overlay-close');
     const emojiOverlayGrid = document.getElementById('emoji-overlay-grid');
+    const emojiOverlayControls = document.getElementById('emoji-overlay-controls');
 
     // Settings controls
     const dwellTimeSlider = document.getElementById('dwell-time-slider');
@@ -58,6 +59,8 @@
     let arrowNavEnabled = false;
     let arrowFocusDwellEnabled = false;
     let arrowNavSingleStepEnabled = false;
+    let emojiLayoutFrame = null;
+    let emojiResizeObserver = null;
 
     // --- Initialize ---
     function init() {
@@ -317,12 +320,14 @@
         // Emoji size
         emojiSizeSelect.addEventListener('change', () => {
             applyEmojiSize(emojiSizeSelect.value);
+            scheduleEmojiOverlayLayout();
             saveSettings();
         });
 
         // Emoji font boost
         emojiFontBoostSelect.addEventListener('change', () => {
             applyEmojiFontBoost(emojiFontBoostSelect.value);
+            scheduleEmojiOverlayLayout();
             saveSettings();
         });
 
@@ -607,6 +612,16 @@
 
         // Populate the overlay grid with cloned need buttons
         populateEmojiOverlay();
+        window.addEventListener('resize', scheduleEmojiOverlayLayout);
+        window.visualViewport?.addEventListener('resize', scheduleEmojiOverlayLayout);
+        document.addEventListener('fullscreenchange', scheduleEmojiOverlayLayout);
+
+        if (typeof ResizeObserver === 'function') {
+            emojiResizeObserver = new ResizeObserver(scheduleEmojiOverlayLayout);
+            emojiResizeObserver.observe(emojiOverlay);
+            emojiResizeObserver.observe(emojiOverlayGrid);
+            if (emojiOverlayControls) emojiResizeObserver.observe(emojiOverlayControls);
+        }
     }
 
     function applyInitialViewMode() {
@@ -676,16 +691,125 @@
                 controlsGrid.appendChild(clone);
             });
         }
+
+        scheduleEmojiOverlayLayout();
     }
 
     function openEmojiOverlay() {
         document.body.classList.remove('keyboard-mode-active');
         document.body.classList.add('emoji-mode-active');
         emojiOverlay.classList.add('open');
+        scheduleEmojiOverlayLayout();
     }
 
     function closeEmojiOverlay() {
         showKeyboardMode();
+    }
+
+    function getEmojiLayoutProfile() {
+        const size = emojiSizeSelect?.value || document.body.getAttribute('data-emoji-size') || 'medium';
+        const fontBoost = emojiFontBoostSelect?.value || document.body.getAttribute('data-emoji-font-boost') || 'normal';
+        const profiles = {
+            small: { gap: 4, symbol: 0.36, label: 0.12, maxSymbol: 34, maxLabel: 11, controls: 46 },
+            medium: { gap: 5, symbol: 0.44, label: 0.14, maxSymbol: 44, maxLabel: 13, controls: 54 },
+            large: { gap: 6, symbol: 0.54, label: 0.17, maxSymbol: 56, maxLabel: 16, controls: 62 },
+            xlarge: { gap: 7, symbol: 0.62, label: 0.2, maxSymbol: 68, maxLabel: 19, controls: 70 },
+        };
+        const boosts = { normal: 1, large: 1.12, xlarge: 1.25 };
+
+        return {
+            ...(profiles[size] || profiles.medium),
+            fontBoost: boosts[fontBoost] || 1,
+        };
+    }
+
+    function fitEmojiGridToSpace(grid, profile) {
+        if (!grid) return;
+
+        const buttons = Array.from(grid.querySelectorAll('.need-btn'));
+        const count = buttons.length;
+        if (!count) return;
+
+        const width = grid.clientWidth;
+        const height = grid.clientHeight;
+        if (width <= 0 || height <= 0) return;
+
+        let best = null;
+        for (let columns = 1; columns <= count; columns++) {
+            const rows = Math.ceil(count / columns);
+            const cellWidth = (width - profile.gap * (columns - 1)) / columns;
+            const cellHeight = (height - profile.gap * (rows - 1)) / rows;
+            if (cellWidth <= 0 || cellHeight <= 0) continue;
+
+            const cellScore = Math.min(cellWidth, cellHeight);
+            const balancePenalty = Math.abs(cellWidth - cellHeight) * 0.08;
+            const score = cellScore - balancePenalty;
+
+            if (!best || score > best.score + 3 || (Math.abs(score - best.score) <= 3 && cellHeight > best.cellHeight)) {
+                best = { columns, rows, cellWidth, cellHeight, cellScore, score };
+            }
+        }
+
+        if (!best) return;
+
+        const shortSide = Math.min(best.cellWidth, best.cellHeight);
+        let labelSize = Math.min(profile.maxLabel * profile.fontBoost, Math.max(8, shortSide * profile.label * profile.fontBoost));
+        const symbolRoom = Math.max(22, best.cellHeight - labelSize - profile.gap - 10);
+        let symbolSize = Math.min(profile.maxSymbol, Math.max(22, Math.min(shortSide * profile.symbol, symbolRoom * 0.92)));
+
+        grid.style.gridTemplateColumns = `repeat(${best.columns}, minmax(0, 1fr))`;
+        grid.style.gridAutoRows = `${Math.max(40, Math.floor(best.cellHeight))}px`;
+        grid.style.gap = `${profile.gap}px`;
+        grid.style.overflow = 'hidden';
+
+        const applyButtonSizes = () => {
+            buttons.forEach((button) => {
+                button.style.setProperty('font-size', `${symbolSize}px`, 'important');
+                button.style.setProperty('line-height', '1', 'important');
+                const label = button.querySelector('.need-label');
+                if (label) {
+                    label.style.setProperty('font-size', `${labelSize}px`, 'important');
+                    label.style.setProperty('line-height', '1', 'important');
+                }
+            });
+        };
+
+        applyButtonSizes();
+
+        for (let attempt = 0; attempt < 8; attempt++) {
+            const overflowing = buttons.some((button) => (
+                button.scrollHeight > button.clientHeight + 1 ||
+                button.scrollWidth > button.clientWidth + 1
+            ));
+            if (!overflowing) break;
+
+            symbolSize = Math.max(18, symbolSize * 0.94);
+            labelSize = Math.max(7, labelSize * 0.9);
+            applyButtonSizes();
+        }
+    }
+
+    function layoutEmojiOverlay() {
+        if (!emojiOverlay || !emojiOverlay.classList.contains('open')) return;
+
+        const profile = getEmojiLayoutProfile();
+        if (emojiOverlayControls) {
+            emojiOverlayControls.style.gridTemplateColumns = 'repeat(5, minmax(0, 1fr))';
+            emojiOverlayControls.style.gridAutoRows = `${profile.controls}px`;
+            emojiOverlayControls.style.height = `${profile.controls}px`;
+            emojiOverlayControls.style.gap = `${profile.gap}px`;
+            fitEmojiGridToSpace(emojiOverlayControls, profile);
+        }
+
+        requestAnimationFrame(() => fitEmojiGridToSpace(emojiOverlayGrid, profile));
+    }
+
+    function scheduleEmojiOverlayLayout() {
+        if (emojiLayoutFrame) cancelAnimationFrame(emojiLayoutFrame);
+        emojiLayoutFrame = requestAnimationFrame(() => {
+            emojiLayoutFrame = null;
+            layoutEmojiOverlay();
+        });
     }
 
     // --- Speech Synthesis (ElevenLabs API) ---
