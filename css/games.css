@@ -692,6 +692,7 @@ body.theme-light .sudoku-cell.given {
 .solitario-layout {
     --sol-card-width: 132px;
     --sol-card-min-width: 112px;
+    --sol-card-height: calc(var(--sol-card-width) * 1.39);
     --sol-card-padding: 11px;
     --sol-card-corner-size: 1.28rem;
     --sol-card-center-size: 3.45rem;
@@ -699,7 +700,8 @@ body.theme-light .sudoku-cell.given {
     --sol-card-overlap: -98px;
     --sol-face-up-overlap: -88px;
     --sol-pile-width: 132px;
-    --sol-pile-height: 183px;
+    --sol-pile-height: var(--sol-card-height);
+    --sol-tableau-step: 44px;
     --sol-waste-width: 184px;
     display: flex;
     flex-direction: column;
@@ -779,6 +781,9 @@ body.theme-light .sudoku-cell.given {
 
 body.solitario-game-active .games-app {
     position: relative;
+    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
     gap: 8px;
     padding: 8px 12px;
 }
@@ -847,19 +852,39 @@ body.solitario-game-active #solitario-area .game-controls {
     flex-wrap: nowrap;
     gap: 6px;
     min-width: 0;
-    overflow-x: auto;
-    scrollbar-width: thin;
+    overflow: hidden;
 }
 
 body.solitario-game-active #solitario-area .game-btn {
-    flex: 0 0 auto;
+    flex: 1 1 0;
     min-height: 40px;
-    padding: 7px 10px;
+    min-width: 0;
+    justify-content: center;
+    padding: 7px 6px;
     border-radius: var(--radius-sm);
-    font-size: 0.84rem;
+    font-size: clamp(0.68rem, 0.95vw, 0.84rem);
+}
+
+body.solitario-game-active #solitario-area .game-btn span:last-of-type {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 body.solitario-game-active .solitario-layout {
+    --sol-card-width: clamp(96px, min(11vw, 13vh), 132px);
+    --sol-card-min-width: calc(var(--sol-card-width) * 0.9);
+    --sol-card-height: calc(var(--sol-card-width) * 1.39);
+    --sol-card-padding: clamp(8px, 0.85vw, 11px);
+    --sol-card-corner-size: clamp(1rem, 1.8vw, 1.28rem);
+    --sol-card-center-size: clamp(2.45rem, 4.6vw, 3.45rem);
+    --sol-card-overlap: calc(var(--sol-card-width) * -0.9);
+    --sol-face-up-overlap: calc(var(--sol-card-width) * -0.76);
+    --sol-pile-width: var(--sol-card-width);
+    --sol-pile-height: var(--sol-card-height);
+    --sol-tableau-step: clamp(28px, 5.2vh, 46px);
+    --sol-waste-width: calc(var(--sol-card-width) * 1.46);
     gap: 8px;
     max-width: none;
 }
@@ -1037,6 +1062,7 @@ body.solitario-game-active .solitario-pile-label {
 }
 
 .solitario-column {
+    --sol-tableau-column-step: var(--sol-tableau-step);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1154,11 +1180,11 @@ body.solitario-game-active .solitario-pile-label {
 }
 
 .sol-tableau-card + .sol-tableau-card {
-    margin-top: var(--sol-card-overlap);
+    margin-top: calc((var(--sol-pile-height) - var(--sol-tableau-column-step)) * -1);
 }
 
 .sol-tableau-card-face-up + .sol-tableau-card-face-up {
-    margin-top: var(--sol-face-up-overlap);
+    margin-top: calc((var(--sol-pile-height) - var(--sol-tableau-column-step)) * -1);
 }
 
 .sol-tableau-card-covered.arrow-focused {

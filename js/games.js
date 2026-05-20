@@ -961,6 +961,7 @@
     let solitarioMessageText = '';
     let solitarioMessageClass = 'game-message';
     let solitarioPostRenderFocusTarget = null;
+    let solitarioFitFrame = null;
 
     const solitarioStockEl = document.getElementById('solitario-stock');
     const solitarioWasteEl = document.getElementById('solitario-waste');
@@ -1592,6 +1593,7 @@
         solitarioTableau.forEach((column, col) => {
             const columnEl = document.createElement('div');
             columnEl.className = 'solitario-column';
+            columnEl.dataset.cardCount = String(Math.max(1, column.length));
             columnEl.setAttribute('aria-label', `Columna ${col + 1}`);
 
             if (column.length === 0) {
@@ -1628,6 +1630,50 @@
             }
 
             solitarioTableauEl.appendChild(columnEl);
+        });
+    }
+
+    function getPixelValue(value) {
+        const parsed = parseFloat(value);
+        return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function fitSolitarioTableauToViewport() {
+        if (!document.body.classList.contains('solitario-game-active')) return;
+        if (!solitarioTableauEl || solitarioTableauEl.style.display === 'none') return;
+
+        const sampleCard = solitarioTableauEl.querySelector('.sol-tableau-card, .sol-empty-slot');
+        if (!sampleCard) return;
+
+        const tableauRect = solitarioTableauEl.getBoundingClientRect();
+        const tableauStyle = getComputedStyle(solitarioTableauEl);
+        const paddingY = getPixelValue(tableauStyle.paddingTop) + getPixelValue(tableauStyle.paddingBottom);
+        const cardHeight = sampleCard.getBoundingClientRect().height;
+        const messageHeight = solitarioMessage ? solitarioMessage.getBoundingClientRect().height : 0;
+        const availableHeight = window.innerHeight - tableauRect.top - messageHeight - 10;
+        const availableColumnHeight = Math.max(cardHeight, availableHeight - paddingY);
+        const preferredStep = Math.min(48, Math.max(30, cardHeight * 0.34));
+        const readableStep = Math.min(28, Math.max(16, cardHeight * 0.16));
+
+        solitarioTableauEl.querySelectorAll('.solitario-column').forEach((columnEl) => {
+            const cardCount = parseInt(columnEl.dataset.cardCount || '1', 10);
+            let step = preferredStep;
+
+            if (cardCount > 1) {
+                const fitStep = (availableColumnHeight - cardHeight) / (cardCount - 1);
+                step = Math.min(preferredStep, Math.max(readableStep, fitStep));
+                if (fitStep < readableStep) step = Math.max(8, fitStep);
+            }
+
+            columnEl.style.setProperty('--sol-tableau-column-step', `${Math.max(8, Math.floor(step))}px`);
+        });
+    }
+
+    function scheduleSolitarioTableauFit() {
+        if (solitarioFitFrame) cancelAnimationFrame(solitarioFitFrame);
+        solitarioFitFrame = requestAnimationFrame(() => {
+            solitarioFitFrame = null;
+            fitSolitarioTableauToViewport();
         });
     }
 
@@ -1729,6 +1775,7 @@
         } else {
             syncArrowNavToSolitarioPostMove();
         }
+        scheduleSolitarioTableauFit();
         renderGameToText();
     }
 
@@ -2274,6 +2321,11 @@
         });
     }
 
+    function openMainAppMode(mode) {
+        if (window.FullscreenHandoff) window.FullscreenHandoff.rememberIntent();
+        window.location.href = `index.html?mode=${mode}`;
+    }
+
     // ========================================================
     // INITIALIZATION
     // ========================================================
@@ -2290,6 +2342,8 @@
         attachDwell(document.getElementById('sudoku-check'), () => checkSudokuSolution());
         attachDwell(document.getElementById('sudoku-hint'), () => giveSudokuHint());
         attachDwell(document.getElementById('sudoku-back-to-menu'), showSelector);
+        attachDwell(document.getElementById('sudoku-open-emojis'), () => openMainAppMode('emoji'));
+        attachDwell(document.getElementById('sudoku-open-keyboard'), () => openMainAppMode('keyboard'));
 
         // Wire Solitario controls
         attachDwell(document.getElementById('solitario-new'), () => newSolitarioGame());
@@ -2298,12 +2352,16 @@
         attachDwell(document.getElementById('solitario-undo'), () => undoSolitarioMove());
         attachDwell(document.getElementById('solitario-hint'), () => giveSolitarioHint());
         attachDwell(document.getElementById('solitario-back-to-menu'), showSelector);
+        attachDwell(document.getElementById('solitario-open-emojis'), () => openMainAppMode('emoji'));
+        attachDwell(document.getElementById('solitario-open-keyboard'), () => openMainAppMode('keyboard'));
 
         // Wire back button
         attachDwell(document.getElementById('back-btn'), () => {
             if (window.FullscreenHandoff) window.FullscreenHandoff.rememberIntent();
             window.location.href = 'index.html';
         });
+
+        window.addEventListener('resize', scheduleSolitarioTableauFit);
 
         if (window.FullscreenHandoff) window.FullscreenHandoff.init(attachDwell);
     }

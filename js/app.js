@@ -89,6 +89,7 @@
         setupQuickNeeds();
         setupBottomControls();
         setupEmojiOverlay();
+        applyInitialViewMode();
 
         // Arrow navigation
         setupArrowNavigation();
@@ -608,6 +609,22 @@
         populateEmojiOverlay();
     }
 
+    function applyInitialViewMode() {
+        const mode = new URLSearchParams(window.location.search).get('mode');
+        if (mode === 'emoji') {
+            openEmojiOverlay();
+            return;
+        }
+
+        showKeyboardMode();
+    }
+
+    function showKeyboardMode() {
+        document.body.classList.add('keyboard-mode-active');
+        document.body.classList.remove('emoji-mode-active');
+        if (emojiOverlay) emojiOverlay.classList.remove('open');
+    }
+
     function populateEmojiOverlay() {
         emojiOverlayGrid.innerHTML = '';
         const needBtns = document.querySelectorAll('#quick-needs .need-btn');
@@ -662,11 +679,13 @@
     }
 
     function openEmojiOverlay() {
+        document.body.classList.remove('keyboard-mode-active');
+        document.body.classList.add('emoji-mode-active');
         emojiOverlay.classList.add('open');
     }
 
     function closeEmojiOverlay() {
-        emojiOverlay.classList.remove('open');
+        showKeyboardMode();
     }
 
     // --- Speech Synthesis (ElevenLabs API) ---
