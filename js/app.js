@@ -18,6 +18,7 @@
     const deleteWordBtn = document.getElementById('delete-word-btn');
     const speakBtn = document.getElementById('speak-btn');
     const copyBtn = document.getElementById('copy-btn');
+    const pasteBtn = document.getElementById('paste-btn');
     const gamesBtn = document.getElementById('games-btn');
     const settingsBtn = document.getElementById('settings-btn');
     const whatsappOpenBtn = document.getElementById('whatsapp-open-btn');
@@ -480,6 +481,20 @@
             showToast(copied ? 'Texto copiado' : 'No se pudo copiar');
         };
 
+        const pasteAction = async () => {
+            const text = await readTextFromClipboard();
+            if (text == null) {
+                showToast('No se pudo leer el portapapeles');
+                return;
+            }
+            if (!text) {
+                showToast('El portapapeles está vacío');
+                return;
+            }
+            insertText(text);
+            showToast('Texto pegado');
+        };
+
         const whatsappAction = () => {
             const message = typedText.trim();
             if (!message) {
@@ -504,6 +519,7 @@
         attachDwellToActionBtn(deleteWordBtn, deleteWordAction);
         attachDwellToActionBtn(speakBtn, speakAction);
         if (copyBtn) attachDwellToActionBtn(copyBtn, copyAction);
+        if (pasteBtn) attachDwellToActionBtn(pasteBtn, pasteAction);
         if (whatsappOpenBtn) attachDwellToActionBtn(whatsappOpenBtn, whatsappAction);
         if (gamesBtn) attachDwellToActionBtn(gamesBtn, gamesAction);
         attachDwellToActionBtn(settingsBtn, settingsAction);
@@ -538,6 +554,34 @@
 
         textarea.remove();
         return copied;
+    }
+
+    /**
+     * Read text from the clipboard. Returns the string, '' if empty,
+     * or null if reading failed / is not permitted.
+     */
+    async function readTextFromClipboard() {
+        if (navigator.clipboard && navigator.clipboard.readText && window.isSecureContext) {
+            try {
+                const text = await navigator.clipboard.readText();
+                return text || '';
+            } catch (error) {
+                // Permission denied or unsupported — fall through.
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Insert arbitrary text at the end of the typed text, normalising
+     * line endings and keeping word/prediction state in sync.
+     */
+    function insertText(text) {
+        const normalized = String(text).replace(/\r\n?/g, '\n');
+        typedText += normalized;
+        currentWord = extractCurrentWord();
+        updateDisplay();
+        updatePredictions();
     }
 
     /**
@@ -1109,6 +1153,7 @@
             [
                 document.getElementById('speak-btn'),
                 document.getElementById('copy-btn'),
+                document.getElementById('paste-btn'),
                 document.getElementById('delete-word-btn'),
                 document.getElementById('clear-btn'),
             ],
@@ -1382,6 +1427,21 @@
      * Set up global key listener for arrow navigation.
      */
     function setupArrowNavigation() {
+        // Global paste (Ctrl+V / right-click paste) inserts external text
+        // into the message box, even though it is a non-editable element.
+        document.addEventListener('paste', (e) => {
+            const tag = e.target && e.target.tagName;
+            // Let native paste work inside real input fields (settings, etc.).
+            if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+
+            const text = e.clipboardData && e.clipboardData.getData('text');
+            if (!text) return;
+
+            e.preventDefault();
+            insertText(text);
+            showToast('Texto pegado');
+        });
+
         document.addEventListener('keydown', (e) => {
             // Escape closes overlays
             if (e.key === 'Escape') {
